@@ -10,7 +10,7 @@ To run this script, you’ll need to use the Docker image available on Docker Hu
 
 2)Check Docker service status:<br> 
 
-`sudo systemctl status docker`
+`sudo systemctl status docker` , if it's disable, then enable/start with: `sudo systemctl enable --now docker`
 
 3)Update packages:<br> 
 
