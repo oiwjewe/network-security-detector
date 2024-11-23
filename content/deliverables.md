@@ -6,7 +6,7 @@ This tool is designed to analyze and monitor network traffic in real-time to ide
 **1. Anomaly Detection with Machine Learning:**<br>
 The tool uses various machine learning models to analyze traffic patterns and detect anomalies that may indicate malicious activity.<br><br>
 
-**Isolation Forest:** This model detects outliers in the traffic data by identifying data points that deviate significantly from the rest, helping to uncover anomalies like sudden traffic spikes.<br>
+<pre>**Isolation Forest:** This model detects outliers in the traffic data by identifying data points that deviate significantly from the rest, helping to uncover anomalies like sudden traffic spikes.</pre><br>
 
 **One-Class SVM (Support Vector Machine):** It is used to identify traffic that doesn't conform to the norm, helping detect rare or abnormal behaviors in the network traffic.<br>
 
