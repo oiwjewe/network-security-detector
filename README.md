@@ -3,13 +3,9 @@
 
 <h3>Usage:</h3>
 
-<small>To run this script, you will need to use the Docker image available in Docker Hub. For this, follow the instructions bellow.</small>
-
-For other distributions and systems or troubleshooting errors that may occur during Docker installation in your environment, please refer to the official Docker documentation at https://docs.docker.com/get-docker/
-
+To run this script, you will need to use the Docker image available in Docker Hub. For this, follow the instructions bellow to run in Debian Linux Distributions. For other Linux distributions or operational systems or troubleshooting errors that may occur during Docker installation in your environment, please refer to the official Docker documentation at https://docs.docker.com/get-docker/
 
 *Run the commands bellow in your terminal. If Docker is already installed in your environment, skip to step 5:*
-
 
 #1)Check if Docker is installed:<br> 
 *docker --version*
