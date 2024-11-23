@@ -1,7 +1,7 @@
 <h3>Acknowledgments</h3><br>
 I'm really thankfull for this team that with only a request made my mind expand and grow in so many directions in such a little time.<br>
-I really appreciated and enjoyed this experience.<br>
-I want more. I'm hungry to be part of the pack!<br><br>
+I really appreciated and enjoyed this experience. I want more.<br>
+I'm hungry to be part of the pack!<br><br>
 
 <h3>Considerations:</h3><br>
 This script were developed as result of a hacker challenge for a job application, so it won’t be perfect. It’s not designed to be perfect, but to be flexible so it could be improved over time.<br>
