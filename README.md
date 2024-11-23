@@ -8,7 +8,7 @@ To run this script, you will need to use the Docker image available in Docker Hu
 For other distributions and systems or troubleshooting errors that may occur during Docker installation in your environment, please refer to the official Docker documentation at https://docs.docker.com/get-docker/
 
 
-<p style="font-style:italic;">Run the commands bellow in your terminal. If Docker is already installed in your environment, skip to step 5:</p>
+*Run the commands bellow in your terminal. If Docker is already installed in your environment, skip to step 5:*
 
 
 #1)Check if Docker is installed: 
