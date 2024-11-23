@@ -1,1 +1,23 @@
-<h3>Description</h3><br>
+<h3>Description</h3><br><br>
+
+This script is designed to analyze and monitor network traffic to identify potential security risks and anomalies. It processes network traffic data, detects suspicious patterns, and applies a security policy to mitigate threats like DDoS attacks, brute-force attempts, and geo-location-based risks. By leveraging machine learning models such as Isolation Forest, One-Class SVM, and Autoencoders, it can detect unusual traffic patterns in real-time, offering a more adaptive and intelligent approach to network security.<br><br>
+
+The solution integrates additional features like geolocation filtering to block or flag traffic from high-risk countries, as well as anonymizing sensitive data for enhanced privacy compliance. With the ability to scale and adapt to different traffic patterns, this tool provides an effective layer of protection for networks.<br><br>
+
+**Technologies Used**:<br><br>
+Machine Learning (Isolation Forest, One-Class SVM, Autoencoders)<br>
+Geolocation-based Risk Detection<br>
+Privacy Enhancements (IP Hashing & Encryption)<br>
+Containers to scalability<br>
+This tool can be easily extended to include more advanced techniques like deep learning or reinforcement learning to improve security over time.<br><br>
+
+**Key Features**:<br><br>
+Real-Time Anomaly Detection with machine learning models
+Geolocation Filtering to block traffic from high-risk countries
+Privacy Protection through IP hashing and encryption
+Scalable and Adaptable to various traffic patterns and security needs
+
+Anomaly Detection using advanced machine learning models
+Geo-location Filtering to block traffic from high-risk countries
+Data Privacy through IP anonymization and encryption
+Flexible and Scalable for a range of network environments
