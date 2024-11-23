@@ -1,6 +1,6 @@
 <h3>Description</h3><br>
 
-This script is designed to analyze and monitor network traffic to identify potential security risks and anomalies. It processes network traffic data, detects suspicious patterns, and applies a security policy to mitigate threats like DDoS attacks, brute-force attempts, and geo-location-based risks. By leveraging machine learning models such as Isolation Forest, One-Class SVM, and Autoencoders, it can detect unusual traffic patterns in real-time, offering a more adaptive and intelligent approach to network security.<br>
+The Network Traffic Analyzer tool is designed to analyze and monitor network traffic to identify potential security risks and anomalies. It processes network traffic data, detects suspicious patterns, and applies a security policy to mitigate threats like DDoS attacks, brute-force attempts, and geo-location-based risks. By leveraging machine learning models such as Isolation Forest, One-Class SVM, and Autoencoders, it can detect unusual traffic patterns in real-time, offering a more adaptive and intelligent approach to network security.<br>
 
 The solution integrates additional features like geolocation filtering to block or flag traffic from high-risk countries, as well as anonymizing sensitive data for enhanced privacy compliance. With the ability to scale and adapt to different traffic patterns, this tool provides an effective layer of protection for networks.<br><br>
 
