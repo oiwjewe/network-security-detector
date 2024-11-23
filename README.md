@@ -3,7 +3,7 @@
 
 <h3>Usage:</h3>
 
-<p><small>To run this script, you will need to use the Docker image available in Docker Hub. For this, follow the instructions bellow.</small></p>
+<small>To run this script, you will need to use the Docker image available in Docker Hub. For this, follow the instructions bellow.</small>
 
 For other distributions and systems or troubleshooting errors that may occur during Docker installation in your environment, please refer to the official Docker documentation at https://docs.docker.com/get-docker/
 
