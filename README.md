@@ -1,8 +1,7 @@
 # Table of Contents
 
 - [Description](content/description.md)
-- [Installation and Usage](content/installation.md)
-- [Considerations](content/considerations.md)
+- [Deliverables](content/deliverables.md)
 - [Documentation](content/documentation.md)
-- [Value](content/value.md)
+- [Installation and Usage](content/installation.md)
 - [Acknowledgments and Considerations](content/acknowledgments.md)
