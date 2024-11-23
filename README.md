@@ -1,4 +1,12 @@
-<h3>Description:</h3>
+# Table of Contents
+
+- [Description](#Description)
+- [Installation](#installation)
+- [Usage](#usage)
+- [License](#license)
+
+
+#<h3>Description:</h3>
 
 
 <h3>Usage:</h3>
