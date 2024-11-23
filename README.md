@@ -11,7 +11,7 @@ For other distributions and systems or troubleshooting errors that may occur dur
 *Run the commands bellow in your terminal. If Docker is already installed in your environment, skip to step 5:*
 
 
-#1)Check if Docker is installed: 
+#1)Check if Docker is installed:<br> 
 *docker --version*
 
 #2)Check Docker service status: 
