@@ -5,5 +5,4 @@
 - [Considerations](content/considerations.md)
 - [Documentation](content/documentation.md)
 - [Value](content/value.md)
-- [Considerations](content/considerations.md)
-- [Acknowledgments](content/acknowledgments.md)
+- [Acknowledgments and Considerations](content/acknowledgments.md)
