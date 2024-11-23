@@ -6,9 +6,9 @@ The solution integrates additional features like geolocation filtering to block 
 
 **Technologies Used**:<br>
 Machine Learning (Isolation Forest, One-Class SVM, Autoencoders)<br>
-Geolocation-based Risk Detection<br>
+Geolocation-based (Risk Detection)<br>
 Privacy Enhancements (IP Hashing & Encryption)<br>
-Containers to scalability<br>
+Containers (Scalability)<br>
 This tool can be easily extended to include more advanced techniques like deep learning or reinforcement learning to improve security over time.<br><br>
 
 **Key Features**:<br>
