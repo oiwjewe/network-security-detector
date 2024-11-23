@@ -22,11 +22,7 @@ To run this script, you’ll need to use the Docker image available on Docker Hu
 *sudo docker images*
 
 #7)Build the image:<br>
-*sudo docker build -t network-security-detector .*
+*sudo docker build -t w1ndx/network-traffic-analyzer:first .*
 
 #8)Finally, to run the script, simply execute the following command:<br>
-*sudo docker run --rm network-security-detector:latest python3 ./network_trf_analyzer.py*
-
-
-#or RUN IN BACKGROUND:<br>
-*sudo docker run -d --name network-security-detector-container network-security-detector*
+*sudo docker run --rm w1ndx/network-traffic-analyzer:first python3 ./network_trf_analyzer.py*
