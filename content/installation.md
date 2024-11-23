@@ -16,7 +16,7 @@ To run this script, you’ll need to use the Docker image available on Docker Hu
 *sudo apt install docker.io docker-compose*
 
 #5)Download the Docker image:<br>
-*sudo docker pull network-security-detector:latest>*
+*sudo docker pull w1ndx/network-traffic-analyzer:first*
 
 #6)See the Docker images available in your environment:<br> 
 *sudo docker images*
