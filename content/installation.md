@@ -6,7 +6,7 @@ To run this script, you’ll need to use the Docker image available on Docker Hu
 
 #1)Check if Docker is installed:<br> 
 
-<prev>docker --version</prev>
+'''docker --version'''
 
 #2)Check Docker service status:<br> 
 
