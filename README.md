@@ -16,7 +16,7 @@ To run this script, you will need to use the Docker image available in Docker Hu
 *sudo apt update && apt upgrade -y && apt autoremove*
 
 #4)Install Docker:<br> 
-<p style="font-style:italic;">sudo apt install docker.io docker-compose*
+*sudo apt install docker.io docker-compose*
 
 #5)Download the Docker image:<br>
 *sudo docker pull network-security-detector:latest>*
