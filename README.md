@@ -1,6 +1,6 @@
 # Getting Started:
 
-Simply click on the topic you're interested in toavigate through the sections by clicking the links below. Each section provides detailed information about different aspects of the project.<br><br>
+Simply click on the topic you're interested in to navigate through the sections by clicking the links below. Each section provides detailed information about different aspects of the project.<br><br>
 
 - [Description](content/description.md) - The "Description" section provides a brief summary of what the application does, highlighting its key features and purpose.
 - [Deliverables](content/deliverables.md) - The "Deliverables" section outlines the requested items and the value associated with each delivery, providing a clear breakdown of what has been completed.
