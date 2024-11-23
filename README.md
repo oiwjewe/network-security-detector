@@ -1,7 +1,7 @@
-Description:
+<h2>Description:</h2>
 
 
-Usage:
+<h2>Usage:</h2>h2>
 
 To run this script, you will need to use the Docker image available in Docker Hub. For this, follow the instructions bellow.
 
