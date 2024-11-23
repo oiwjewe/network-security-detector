@@ -1,12 +1,11 @@
-<h2>Description:</h2>
+<h3>Description:</h3>
 
 
-<h2>Usage:</h2>h2>
+<h3>Usage:</h3>
 
 To run this script, you will need to use the Docker image available in Docker Hub. For this, follow the instructions bellow.
 
 For other distributions and systems or troubleshooting errors that may occur during Docker installation in your environment, please refer to the official Docker documentation at https://docs.docker.com/get-docker/
-
 
 
 Run the commands bellow in your terminal. If Docker is already installed in your environment, skip to step 5:
@@ -41,7 +40,7 @@ sudo docker run --rm <network-security-detector:tag> python3 ./network_trf_analy
 sudo docker run -d --name network-security-detector-container network-security-detector
 
 
-Considerations:
+<h3>Considerations:</h3>
 
 This script were developed as result of a hacker challenge for a job interview, so it won’t be perfect. It’s not designed to be perfect, but to be flexible so it could be improved. 
 
