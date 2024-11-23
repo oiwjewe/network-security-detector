@@ -1,4 +1,4 @@
-<h3>Deliverables of Network Traffic Analyzer for Security Monitoring Tool</h3><br><br>
+<h3>Deliverables of Network Traffic Analyzer for Security Monitoring Tool</h3><br>
 
 This tool is designed to analyze and monitor network traffic in real-time to identify potential security risks and anomalies. The system processes traffic data, detects suspicious patterns, and applies a security policy to mitigate threats such as DDoS attacks, brute-force attempts, and geo-location-based risks.<br><br> By leveraging machine learning models like Isolation Forest, One-Class SVM, and Autoencoders, the script can detect unusual traffic patterns and behaviors, offering a more adaptive and intelligent approach to network security.<br><br>
 
