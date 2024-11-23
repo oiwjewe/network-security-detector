@@ -8,7 +8,7 @@ To run this script, you’ll need to use the Docker image available on Docker Hu
 
 `docker --version` 
 
-*If it returns nothing, then jump step 2*
+*If it returns nothing, then jump step 2*<br>
 *If it returns the version, jump step 4*
 
 2)Check Docker service status:<br> 
