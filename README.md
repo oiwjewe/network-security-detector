@@ -45,7 +45,7 @@ Feel free to study it and adapt it into your reality if it makes sense to you.
 *Do not run it in networks where you don’t have express and legal consent.*
 Commercial use of this script is not recommended once it was developed with help of ChatGPT.
 
-<3>Acknowledgments</h3>
+<h3>Acknowledgments</h3>
 I'm really thankfull for this team that with only a request made my mind expand and grow in so many directions in such a little time.<br> 
 I really appreciated and enjoyed this experience.<br> 
 I want more. I'm hungry to be part of the pack!
