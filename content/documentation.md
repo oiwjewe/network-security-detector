@@ -1,6 +1,6 @@
 <h3>Documentation</h3><br>
 
-Sure! Here's a detailed technical report for the entire script. I’ll break it down by each section and function, explaining what they do:
+A detailed technical report for the entire script. I’ll break it down by each section and function, explaining what they do:
 
 ---
 
