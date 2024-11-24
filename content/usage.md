@@ -48,4 +48,4 @@ The inclusion and data removal can be done manually but you can automate this pr
 - [Add-data](add-data.sh)<br>
 - [Remove-data](remove-data.sh)<br>
 
-An interesting ideia would be setup a daemon to run the network-security-detector 24/7.
+An interesting ideia would be setup a daemon to run the network-security-detector 24/7
