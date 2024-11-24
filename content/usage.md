@@ -14,7 +14,7 @@ To run this script, you’ll need to use the Docker basic comands as suggested i
 A initial sample could be done with this sample:<br>
 https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d269b8/raw/e0006a126b85782d95a655977deeabbb2b41d0c7/test-dataset.csv<br>
 
-**1)Add data**: Fisrt add a sample of data in .CSV format for machine learning training.<br>
+**1)Add data manually**: Fisrt add a sample of data in .CSV format for machine learning training.<br>
 
 Firs run the container:<br>
 
@@ -24,11 +24,11 @@ Then, copy the file in your real system to inside the container:<br>
 
 `docker cp /caminho/para/seu/arquivo.csv w1ndx/network-traffic-analyzer:first:/usr/src/network_trf_analyzer/arquivo.csv` #replace the file path and file name to feet your needs
 
-**2)Execute**: To run the tool, simply execute the following command:<br>
+**2)Execute**: To run the tool, execute the following command:<br>
 
 `sudo docker run --rm w1ndx/network-traffic-analyzer:first python3 ./network_trf_analyzer.py`
 
-**3)Remove data**: To remove the data manually:<br>
+**3)Remove data manually**:<br>
 
 To remove specific files:<br>
 
