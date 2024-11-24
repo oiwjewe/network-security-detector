@@ -7,7 +7,7 @@ ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeStartTimesta
 ZoneName,ClientASN,ClientCountry,ClientDeviceType,ClientSrcPort,ClientRequestBytes,<br>
 ClientRequestPath,ClientRequestReferer,ClientRequestScheme,ClientRequestUserAgent<br>
 
-However the code has a little flexibility to handle little variations in it, just don't be to wild.
+However the code has a little flexibility to handle some variations on it. Just don't be to much wild.
 
 A initial sample could be done with this sample: https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d269b8/raw/e0006a126b85782d95a655977deeabbb2b41d0c7/test-dataset.csv<br>
 
