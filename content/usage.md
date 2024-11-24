@@ -1,6 +1,6 @@
 <h3>Usage:</h3><br>
 
-To run this script, you’ll need to use the Docker base comands as suggested in the examples bellow:<br>
+To run this script, you’ll need to use the Docker basic comands as suggested in the examples bellow:<br>
 
 The required columns to run this tool is:<br>
 ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeStartTimestamp,<br>
