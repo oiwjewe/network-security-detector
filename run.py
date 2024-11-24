@@ -1,133 +1,228 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
-from sklearn.neural_network import MLPRegressor
-import joblib
+from keras.models import Model
+from keras.layers import Input, Dense
+from sklearn.preprocessing import StandardScaler
+import geopy.distance
 import geoip2.database
-import numpy as np
+from sklearn.cluster import DBSCAN
+from sklearn.metrics import silhouette_score
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import matplotlib.pyplot as plt
 import os
-from datetime import datetime
 
-# Função para salvar figuras geradas
-def save_figure(figure, file_name):
-    """Função para salvar figuras geradas pelo matplotlib."""
-    figure.savefig(file_name)
-    print(f"Figura salva em: {file_name}")
+# Directory for saving files
+output_dir = './output_files'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
-# Função para salvar detecções estruturadas em CSV
-def save_detection_to_csv(detections, filename='detecções_network_traffic.csv'):
-    """Função para salvar detecções em um arquivo CSV."""
-    df = pd.DataFrame(detections)
-    df.to_csv(filename, index=False)
-    print(f"Detecções salvas em: {filename}")
+# Step 1: Data Preprocessing
+def preprocess_data(data):
+    # Normalize traffic volume and other necessary features
+    scaler = StandardScaler()
+    data['ClientSrcPort'] = scaler.fit_transform(data['ClientSrcPort'].values.reshape(-1, 1))
+    data['ClientDstPort'] = scaler.fit_transform(data['ClientDstPort'].values.reshape(-1, 1))
+    return data
 
-# Função para salvar mensagens de detecção em um arquivo TXT
-def save_detection_to_txt(detection_message, filename='detecções_network_traffic.txt'):
-    """Função para salvar mensagens de detecção em um arquivo TXT."""
-    with open(filename, 'a') as file:
-        file.write(detection_message + '\n')
-    print(f"Mensagem salva em: {filename}")
+# Step 2: Anomaly Detection with Multiple Models
 
-# Função para carregar o modelo de machine learning previamente treinado
-def load_trained_model(model_filename='anomaly_model.pkl'):
-    """Função para carregar o modelo de machine learning previamente treinado."""
-    return joblib.load(model_filename)
+# Isolation Forest for Anomaly Detection
+def isolation_forest_detection(data, contamination=0.05):
+    iso_forest = IsolationForest(contamination=contamination, random_state=42)
+    iso_pred = iso_forest.fit_predict(data)
+    return iso_pred
 
-# Função para aplicar políticas de segurança e bloquear IPs de alto risco
-def enforce_security_policy(risk_scores, data, threshold=0.5):
-    """Aplica políticas de segurança para bloquear ou alertar sobre IPs de alto risco com base em pontuação."""
-    risky_ips = []
-    for i, score in enumerate(risk_scores):
-        if score > threshold:  # Se a pontuação de risco for maior que o limiar, bloqueamos o IP
-            ip = data[i]['ip']
-            risky_ips.append(ip)
-            # Adiciona a funcionalidade de bloqueio
-            save_blocked_ip(ip)
-    return risky_ips
+# One-Class SVM for Anomaly Detection
+def one_class_svm_detection(data):
+    svm = OneClassSVM(kernel="rbf", gamma='scale', nu=0.05)
+    svm_pred = svm.fit_predict(data)
+    return svm_pred
 
-# Função para salvar IPs bloqueados em um arquivo (simulação de bloqueio)
-def save_blocked_ip(ip, filename='blocked_ips.txt'):
-    """Função para salvar IPs bloqueados em um arquivo de texto."""
-    with open(filename, 'a') as file:
-        file.write(ip + '\n')
-    print(f"IP bloqueado: {ip} (salvo em {filename})")
-
-# Função para análise e detecção de tráfego de rede
-def analyze_and_detect_traffic(data, geoip_reader, model):
-    """Função para análise e detecção de tráfego de rede."""
+# Autoencoder for Anomaly Detection
+def build_autoencoder(input_dim):
+    input_layer = Input(shape=(input_dim,))
+    encoded = Dense(64, activation='relu')(input_layer)
+    encoded = Dense(32, activation='relu')(encoded)
+    encoded = Dense(16, activation='relu')(encoded)
     
-    detections = []  # Lista para armazenar detecções para salvar no CSV
-    detection_messages = []  # Lista para mensagens de texto simples
-    risk_scores = []  # Lista para armazenar as pontuações de risco
+    decoded = Dense(32, activation='relu')(encoded)
+    decoded = Dense(64, activation='relu')(decoded)
+    decoded = Dense(input_dim, activation='sigmoid')(decoded)
+    
+    autoencoder = Model(input_layer, decoded)
+    autoencoder.compile(optimizer='adam', loss='mean_squared_error')
+    return autoencoder
 
-    # 1. Geolocation-Based Threat Detection
-    for entry in data:
-        ip = entry['ip']
-        try:
-            response = geoip_reader.city(ip)
-            country = response.country.iso_code
-            if country in ['RU', 'CN', 'KP']:  # Países de risco
-                detection_message = f"Alerta: IP {ip} originário de um país de risco ({country})"
-                detection_messages.append(detection_message)
-                detections.append({"ip": ip, "detecção": "Geolocation Threat", "country": country})
-                risk_scores.append(0.9)  # Alto risco devido à geolocalização
-            else:
-                risk_scores.append(0.2)  # Baixo risco
-        except geoip2.errors.GeoIP2Error:
-            pass  # Se o IP não puder ser localizado, ignoramos
+def autoencoder_detection(data, autoencoder, epochs=50, batch_size=32):
+    autoencoder.fit(data, data, epochs=epochs, batch_size=batch_size)
+    reconstructed = autoencoder.predict(data)
+    reconstruction_error = np.mean(np.abs(data - reconstructed), axis=1)
+    return reconstruction_error
 
-    # 2. Anomaly Detection with Machine Learning (Isolation Forest)
-    for entry in data:
-        feature_data = entry['features']  # AQUI deve ser as features usadas no modelo de ML
-        score = model.predict([feature_data])  # Prevendo com o modelo treinado
-        scores = score[0]  # Armazenando o resultado da predição
-        
-        if score[0] == -1:  # -1 indica anomalia detectada pelo modelo Isolation Forest
-            detection_message = f"Alerta: IP {entry['ip']} identificado com comportamento anômalo."
-            detection_messages.append(detection_message)
-            detections.append({"ip": entry['ip'], "detecção": "Anomalia", "score": scores})
-            risk_scores.append(0.8)  # Alto risco por anomalia detectada
+# Step 3: Implement Unsupervised Learning for Novel Attack Detection
+
+# Using DBSCAN (Density-Based Spatial Clustering of Applications with Noise) to detect novel attack patterns
+def unsupervised_detection(data):
+    dbscan = DBSCAN(eps=0.3, min_samples=10)
+    dbscan_labels = dbscan.fit_predict(data)
+    
+    # Silhouette Score for evaluating clustering
+    silhouette_avg = silhouette_score(data, dbscan_labels)
+    print(f"Silhouette Score for DBSCAN: {silhouette_avg}")
+    
+    return dbscan_labels
+
+# Step 4: GeoIP-based IP Spoofing Detection
+def ip_spoofing_detection(ip_list):
+    reader = geoip2.database.Reader('/path/to/GeoLite2-City.mmdb')  # Path to GeoIP database
+    spoofing_flags = []
+    
+    for ip in ip_list:
+        response = reader.city(ip)
+        if response.location.latitude is None or response.location.longitude is None:
+            spoofing_flags.append(True)  # IP geolocation invalid or inconsistent
         else:
-            risk_scores.append(0.1)  # Baixo risco
+            spoofing_flags.append(False)
+    
+    return spoofing_flags
 
-    # 3. Aplicando as políticas de segurança (bloqueando IPs de alto risco)
-    risky_ips = enforce_security_policy(risk_scores, data)
-    if risky_ips:
-        print(f"IPs de alto risco detectados e bloqueados: {risky_ips}")
+# Step 5: Port Scanning Detection
+def port_scanning_detection(data):
+    port_scanning_flags = []
+    unique_ips = data['ClientIP'].unique()
+    
+    for ip in unique_ips:
+        ip_data = data[data['ClientIP'] == ip]
+        if ip_data['ClientSrcPort'].nunique() > 10:  # Example: More than 10 unique ports accessed
+            port_scanning_flags.append(True)
+        else:
+            port_scanning_flags.append(False)
+    
+    return port_scanning_flags
 
-    # 4. Salvando as Detecções e Mensagens
-    if detections:
-        save_detection_to_csv(detections, filename="detecções_network_traffic.csv")
-    if detection_messages:
-        for message in detection_messages:
-            save_detection_to_txt(message, filename="detecções_network_traffic.txt")
+# Step 6: Man-in-the-Middle (MITM) Attack Detection (Placeholder)
+def mitm_detection(data):
+    # Placeholder for MITM detection
+    # Check for anomalies in SSL/TLS handshakes, or abnormal HTTP headers
+    return [False] * len(data)  # Return dummy values (no detection for now)
 
-    # 5. Salvando Gráficos
-    fig, ax = plt.subplots()
-    ax.plot(risk_scores)
-    ax.set_title('Anomalias Detectadas no Tráfego de Rede')
-    save_figure(fig, "detecção_anomalias.png")  # Salvando a imagem gerada
+# Step 7: Policy Enforcement (Alerts and Blocking)
+def enforce_security_policy(risk_scores, threshold=0.8):
+    """
+    This function will alert and block IPs based on risk scores above a certain threshold.
+    """
+    risky_ips = []
+    
+    for i, score in enumerate(risk_scores):
+        if score > threshold:
+            risky_ips.append(i)  # Collect risky IP indices
+    
+    # Simulate blocking risky IPs
+    blocked_ips = block_risky_ips(risky_ips)
+    
+    # Simulate sending alert via email (this can be replaced with your alerting mechanism)
+    send_alert_email(risky_ips)
 
-# Função de carregamento de dados para demonstração
-def load_sample_data():
-    """Função para carregar dados de exemplo"""
-    return [
-        {"ip": "192.168.1.1", "features": [0.5, 1.2, 0.3]},
-        {"ip": "203.0.113.5", "features": [1.1, 0.9, 0.7]},
-        {"ip": "10.0.0.1", "features": [0.8, 1.5, 0.6]}
-    ]
+    return risky_ips, blocked_ips
 
-# Exemplo de como carregar o modelo e executar a análise
-if __name__ == "__main__":
-    # Carregando os dados de tráfego
-    data = load_sample_data()
+def block_risky_ips(risky_ips):
+    """
+    Simulate blocking risky IPs by logging them into a blocked list.
+    In real-world scenarios, you would integrate with your firewall or network security tool.
+    """
+    blocked_ips = risky_ips  # Just simulate by returning the same IPs for now
+    save_to_file(blocked_ips, 'blocked_ips.txt')  # Save the blocked IPs to a text file
+    print(f"Blocked IPs: {blocked_ips}")
+    return blocked_ips
 
-    # Inicializando o leitor de GeoIP (para geolocalização)
-    geoip_reader = geoip2.database.Reader('/path/to/GeoLite2-City.mmdb')
+def send_alert_email(risky_ips):
+    """
+    Send an email alert when risky IPs are detected.
+    """
+    sender_email = "your_email@example.com"
+    receiver_email = "admin@example.com"
+    subject = "Security Alert: Suspicious Activity Detected"
+    
+    body = f"Alert: The following IP addresses are exhibiting suspicious activity: {risky_ips}"
+    
+    message = MIMEMultipart()
+    message['From'] = sender_email
+    message['To'] = receiver_email
+    message['Subject'] = subject
+    message.attach(MIMEText(body, 'plain'))
+    
+    try:
+        with smtplib.SMTP('smtp.example.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, 'your_password')
+            server.sendmail(sender_email, receiver_email, message.as_string())
+            print("Alert sent successfully.")
+    except Exception as e:
+        print(f"Error sending alert: {e}")
 
-    # Carregando o modelo de Machine Learning previamente treinado
-    model = load_trained_model('anomaly_model.pkl')
+def save_to_file(data, filename):
+    """
+    Save analysis results to file (CSV for lists, TXT for simple data).
+    """
+    if isinstance(data, list):  # Save as text file if it's a list of IPs or simple data
+        with open(os.path.join(output_dir, filename), 'w') as f:
+            f.write("\n".join(map(str, data)))
+    elif isinstance(data, pd.DataFrame):  # Save as CSV if it's a DataFrame
+        data.to_csv(os.path.join(output_dir, filename), index=False)
 
-    # Analisando e detectando tráfego
-    analyze_and_detect_traffic(data, geoip_reader, model)
+def save_image(fig, filename):
+    """
+    Save a matplotlib figure to an image file.
+    """
+    fig.savefig(os.path.join(output_dir, filename))
+    print(f"Image saved to {filename}")
+
+# Step 8: Putting It All Together
+
+# Load and preprocess data (replace with your actual data)
+data = pd.read_csv('network_traffic_data.csv')
+
+# Preprocessing
+data = preprocess_data(data)
+
+# Apply multiple anomaly detection models
+iso_pred = isolation_forest_detection(data)
+svm_pred = one_class_svm_detection(data)
+autoencoder = build_autoencoder(data.shape[1])
+reconstruction_error = autoencoder_detection(data, autoencoder)
+
+# Unsupervised learning for novel attacks (using DBSCAN)
+dbscan_labels = unsupervised_detection(data)
+
+# Detect spoofed IPs using GeoIP
+spoofing_flags = ip_spoofing_detection(data['ClientIP'].values)
+
+# Detect port scanning behavior
+port_scanning_flags = port_scanning_detection(data)
+
+# MITM detection (currently a placeholder)
+mitm_flags = mitm_detection(data)
+
+# Aggregate results and create risk scores
+risk_scores = np.mean([iso_pred, svm_pred, reconstruction_error > np.percentile(reconstruction_error, 95)], axis=0)
+
+# Apply policy enforcement: Block or alert on high-risk IPs
+risky_ips, blocked_ips = enforce_security_policy(risk_scores)
+
+# Show the final detection results
+print(f"Detected risky IPs: {risky_ips}")
+
+# Save images generated during execution
+# Example: Let's say you generate a plot of the anomaly detection results
+fig, ax = plt.subplots()
+ax.plot(risk_scores)
+ax.set_title("Risk Scores Plot")
+save_image(fig, 'risk_scores_plot.png')
+
+# Save the results into files
+save_to_file(risky_ips, 'risky_ips.txt')
+save_to_file(pd.DataFrame({'IP': risky_ips, 'Score': risk_scores}), 'risky_ips.csv')
