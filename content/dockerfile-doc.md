@@ -211,4 +211,4 @@ CMD service apache2 start && tail -f /dev/null
 
 ---
 
-This Dockerfile ensures that the container is configured for a secure, Apache-backed, Python application with HTTPS support and access control, making it suitable for both development and production environments.
+This Dockerfile ensures that the container is configured for a secure, Apache-backed, Python application with HTTPS support and access control, making it suitable for both development environments.
