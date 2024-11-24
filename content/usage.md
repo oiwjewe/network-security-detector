@@ -18,14 +18,12 @@ https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d26
 
 ``
 
-This can be done manually or you can automate this process as suggested bellow, in this case provide your customized changes:<br>
+**2)Execute**: To run the tool, simply execute the following command:<br>
 
-# Example of scripts to upload and remove data from the container 
-- [Add-data](add-data.sh)<br>
-- [Remove-data](remove-data.sh)<br>
+`sudo docker run --rm w1ndx/network-traffic-analyzer:first python3 ./network_trf_analyzer.py`
 
 
-**1)Remove data**: To remove the data manually, run:<br>
+**3)Remove data**: To remove the data manually, run:<br>
 
 To remove specific files:<br>
 
@@ -39,8 +37,10 @@ To verify if the files were removed sucessfuly:<br>
 
 `docker exec w1ndx/network-traffic-analyzer:first ls /usr/src/network_trf_analyzer/*.csv`
 
-2)Finally, to run the script, simply execute the following command:<br>
+The inclusion and data removal can be done manually but you can automate this process as suggested bellow, in this case provide your customized changes:<br>
 
-`sudo docker run --rm w1ndx/network-traffic-analyzer:first python3 ./network_trf_analyzer.py`
+# Example of scripts to upload and remove data from the container 
+- [Add-data](add-data.sh)<br>
+- [Remove-data](remove-data.sh)<br>
 
-An interestion ideia would be setup a daemon to run this 24/7, for example.
+An interesting ideia would be setup a daemon to run this 24/7.
