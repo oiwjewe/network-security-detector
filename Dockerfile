@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     python3-distutils \
     python3-setuptools \
     python3-pip \
+    wget \
+    tar \
     build-essential \
   && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
@@ -21,6 +23,15 @@ RUN pip install --upgrade pip \
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar o script geoip.sh para o container
+COPY geoip.sh ./
+
+# Tornar o script executável
+RUN chmod +x geoip.sh
+
+# Executar o script geoip.sh ao iniciar o container
+RUN ./geoip.sh
 
 # Copy the rest of the application
 COPY . .
