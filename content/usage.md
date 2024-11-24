@@ -29,15 +29,15 @@ This can be done manually or you can automate this process as suggested bellow, 
 
 To remove specific files:<br>
 
-`docker exec $CONTAINER rm /caminho/no/container/arquivo.csv`<br>
+`docker exec w1ndx/network-traffic-analyzer:first rm /usr/src/network_trf_analyzer/arquivo.csv`<br>
 
 To remove all .CSV files in a directory inside the container:<br>
 
-`docker exec $CONTAINER rm /caminho/no/container/*.csv`
+`docker exec w1ndx/network-traffic-analyzer:first rm /usr/src/network_trf_analyzer/*.csv`
 
 To verify if the files were removed sucessfuly:<br>
 
-`docker exec $CONTAINER ls /caminho/no/container/*.csv`
+`docker exec w1ndx/network-traffic-analyzer:first ls /usr/src/network_trf_analyzer/*.csv`
 
 2)Finally, to run the script, simply execute the following command:<br>
 
