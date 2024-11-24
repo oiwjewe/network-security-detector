@@ -11,7 +11,8 @@ To run this script, you’ll need to use the Docker basic comands as suggested i
 
 
 
-A initial sample could be done with this sample: https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d269b8/raw/e0006a126b85782d95a655977deeabbb2b41d0c7/test-dataset.csv<br>
+A initial sample could be done with this sample:<br>
+https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d269b8/raw/e0006a126b85782d95a655977deeabbb2b41d0c7/test-dataset.csv<br>
 
 **1)Add data**:Fisrt add a sample of data in .CSV format for machine learning training.<br>
 
