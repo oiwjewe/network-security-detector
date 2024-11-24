@@ -85,4 +85,4 @@ print('Modelo de anomalias treinado e salvo como anomaly_model.pkl.')
 
 ---
 
-This script efficiently sets up the environment by downloading the required database, installing dependencies, and preparing a trained model for anomaly detection, with each step clearly separated for easy execution and maintenance.
+This script sets up the environment by downloading the required database, installing dependencies, and preparing a trained model for anomaly detection, with each step clearly separated for easy execution and maintenance.
