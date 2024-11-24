@@ -1,77 +1,112 @@
-# Technical Documentation for Dockerfile
+# Technical Documentation for the Dockerfile
 
-This Dockerfile outlines the steps necessary to build a Docker container that runs a Python application with an Apache web server, configured for secure SSL communication and directory protection. Each section of the Dockerfile is explained below.
+## Overview
+
+This Dockerfile builds a Docker image that serves a Python-based web application using **Apache HTTP Server** with **SSL/TLS** encryption and **Basic Authentication**. It is designed to run a Python web application inside a **non-root user** environment while ensuring security best practices for the Apache server.
+
+The Docker image has two stages:
+1. **Build stage**: Where dependencies are installed and the application is prepared.
+2. **Runtime stage**: Where the application is served by Apache and configurations like SSL and Basic Authentication are applied.
 
 ---
 
-### 1. **Base Image**
+## Stages and Layers Breakdown
+
+### **1. Build Stage**
+
+This stage is responsible for preparing the environment to install dependencies and the application.
+
+#### **Base Image**
 ```dockerfile
-FROM python:3.11
+FROM python:3.11-slim as build
 ```
-- **Purpose**: Specifies the base image for the Docker container. In this case, it uses the official Python 3.11 image, which includes a Python runtime environment. This is essential for running Python-based applications.
-- **Explanation**: The image contains Python and other essential tools for Python development, and is built on top of a Debian-based distribution.
+- **Base Image**: We use the official `python:3.11-slim` image, which is a slim version of Python 3.11, to minimize the image size. 
+- **Stage alias**: This stage is named `build`, making it easier to reference in multi-stage builds.
 
----
+#### **Install Dependencies for Building**
+```dockerfile
+RUN apt-get update && apt-get install -y build-essential wget tar \
+    && apt-get clean
+```
+- **Install build dependencies**: Installs essential tools needed for building packages or installing dependencies that may require compiling (e.g., `build-essential`, `wget`, `tar`).
+- **Clean**: Removes unnecessary files after installation to reduce the image size.
 
-### 2. **Set Working Directory**
+#### **Working Directory**
 ```dockerfile
 WORKDIR /usr/src/network_trf_analyzer
 ```
-- **Purpose**: Sets the working directory inside the container to `/usr/src/network_trf_analyzer`.
-- **Explanation**: All subsequent commands will be executed from this directory. This is where the Python application and other files will be located.
+- **Set working directory**: Specifies the directory inside the container where the build and subsequent actions (like copying files) will take place.
+
+#### **Copy Application Files**
+```dockerfile
+COPY . .
+```
+- **Copy files**: Copies the entire contents of the current directory on the host machine (where the Dockerfile is located) into the `/usr/src/network_trf_analyzer` directory in the container.
 
 ---
 
-### 3. **Install System Dependencies**
+### **2. Runtime Stage**
+
+This stage prepares the runtime environment by installing the necessary runtime dependencies and configuring the Apache server.
+
+#### **Base Image**
+```dockerfile
+FROM python:3.11-slim
+```
+- **Base Image**: Again, we use the `python:3.11-slim` image, as it is lightweight and suitable for runtime environments.
+
+#### **Install Apache and Runtime Dependencies**
 ```dockerfile
 RUN apt-get update && apt-get install -y \
     apache2 \
     apache2-utils \
     ssl-cert \
-    python3-distutils \
-    python3-setuptools \
     python3-pip \
-    build-essential \
-    wget \
-    tar \
-  && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+    && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 ```
-- **Purpose**: Updates the package list and installs a variety of system dependencies necessary for running Apache, Python, SSL support, and the building of Python packages.
-- **Explanation**:
-  - `apache2`: Installs Apache web server.
-  - `apache2-utils`: Provides utilities for Apache, such as `htpasswd`.
-  - `ssl-cert`: Provides SSL utilities.
-  - `python3-distutils`, `python3-setuptools`, `python3-pip`: Install tools for managing Python packages and dependencies.
-  - `build-essential`: Installs packages necessary for compiling and building software.
-  - `wget`, `tar`: Install tools for downloading and extracting files.
-  - The `apt-get autoremove` and `rm -rf /var/lib/apt/lists/*` clean up unnecessary files to reduce image size.
+- **Install Apache**: Installs the `apache2` package, which is the web server that will serve the Python application.
+- **Apache Utilities**: Installs `apache2-utils`, which includes tools like `htpasswd` for managing `.htpasswd` files.
+- **SSL Certificates**: Installs `ssl-cert` for generating self-signed SSL certificates.
+- **Python Pip**: Installs `pip` to manage Python packages inside the container.
+- **Clean up**: Removes unnecessary package files to keep the image lean.
 
----
+#### **Create a Non-Root User**
+```dockerfile
+RUN useradd -m network_user
+```
+- **User creation**: Creates a non-root user (`network_user`) to run the application. Running containers as non-root users is a security best practice.
 
-### 4. **Disable Apache Modules**
+#### **Set the Working Directory and Switch User**
+```dockerfile
+WORKDIR /usr/src/network_trf_analyzer
+USER network_user
+```
+- **Working directory**: Ensures that the working directory is set to `/usr/src/network_trf_analyzer`, where the application files are located.
+- **Switch user**: Switches to the newly created non-root user (`network_user`) for running the application.
+
+#### **Install Python Dependencies**
+```dockerfile
+COPY requirements.txt ./
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
+```
+- **Install Python packages**: Copies the `requirements.txt` (which contains the list of required Python libraries) into the container and installs the dependencies using `pip`.
+
+#### **Disable Unnecessary Apache Modules**
 ```dockerfile
 RUN a2dismod -f status && a2dismod -f autoindex
 ```
-- **Purpose**: Disables the `status` and `autoindex` Apache modules to improve security by reducing potential attack surfaces.
-- **Explanation**: 
-  - `status`: This module provides a web interface for Apache server status, which could leak sensitive information.
-  - `autoindex`: Disables the automatic directory listing feature to prevent exposing directory contents.
+- **Disable unnecessary Apache modules**: The `status` and `autoindex` modules are disabled to reduce the attack surface of the Apache server. 
+    - `status`: Disables the server status module.
+    - `autoindex`: Disables directory listing (prevents the server from showing a listing of files in a directory if no index file is found).
 
----
-
-### 5. **Enable Necessary Apache Modules**
+#### **Enable Required Apache Modules**
 ```dockerfile
 RUN a2enmod ssl headers rewrite
 ```
-- **Purpose**: Enables essential Apache modules for security and functionality.
-- **Explanation**:
-  - `ssl`: Enables SSL (Secure Sockets Layer) support for encrypted communication.
-  - `headers`: Allows the manipulation of HTTP headers for security settings.
-  - `rewrite`: Enables URL rewriting, which can be useful for routing or redirecting traffic securely.
+- **Enable Apache modules**: Enables the `ssl`, `headers`, and `rewrite` modules for SSL support, HTTP headers manipulation, and URL rewriting.
 
----
-
-### 6. **Configure Apache for Secure Settings**
+#### **Secure Apache Settings**
 ```dockerfile
 RUN echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \
   && echo "ServerSignature Off" >> /etc/apache2/apache2.conf \
@@ -84,44 +119,23 @@ RUN echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \
   && echo "AllowEncodedSlashes NoDecode" >> /etc/apache2/apache2.conf \
   && echo "LogLevel warn" >> /etc/apache2/apache2.conf
 ```
-- **Purpose**: Configures Apache with secure settings to mitigate common web vulnerabilities.
-- **Explanation**:
-  - `ServerTokens Prod`: Limits the information Apache sends in response headers.
-  - `ServerSignature Off`: Prevents Apache from showing detailed version information in error pages.
-  - `TraceEnable Off`: Disables the TRACE HTTP method to prevent potential cross-site tracing attacks.
-  - HTTP headers such as `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, and `Content-Security-Policy` are set for enhanced security (e.g., preventing cross-site scripting and clickjacking).
-  - `AllowEncodedSlashes NoDecode`: Prevents URL decoding for security reasons.
-  - `LogLevel warn`: Sets the Apache logging level to warn, minimizing unnecessary log verbosity.
+- **Hardening Apache**: Configures Apache security headers and disables potentially dangerous settings:
+    - Disables the `ServerTokens` and `ServerSignature` to hide the Apache version and reduce the information exposed about the server.
+    - Configures strict HTTP security headers (`Strict-Transport-Security`, `X-Content-Type-Options`, etc.) to mitigate common attacks (e.g., clickjacking, cross-site scripting, etc.).
+    - Disables HTTP TRACE method to prevent cross-site tracing attacks.
 
----
-
-### 7. **Enable HTTPS and Configure SSL Directories**
+#### **SSL Configuration**
 ```dockerfile
-RUN mkdir -p /etc/ssl/private && \
-    chmod 700 /etc/ssl/private && \
-    mkdir -p /etc/ssl/certs && \
-    chmod 755 /etc/ssl/certs
-```
-- **Purpose**: Creates the directories for storing SSL certificates and sets proper permissions.
-- **Explanation**: 
-  - `/etc/ssl/private`: Directory for storing private SSL keys with restricted permissions.
-  - `/etc/ssl/certs`: Directory for storing public SSL certificates.
-
----
-
-### 8. **Generate Self-Signed SSL Certificate**
-```dockerfile
-RUN openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+RUN mkdir -p /etc/ssl/private && chmod 700 /etc/ssl/private \
+    && mkdir -p /etc/ssl/certs && chmod 755 /etc/ssl/certs \
+    && openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
     -keyout /etc/ssl/private/apache-selfsigned.key \
     -out /etc/ssl/certs/apache-selfsigned.crt \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
 ```
-- **Purpose**: Generates a self-signed SSL certificate.
-- **Explanation**: A self-signed certificate is useful for development or testing environments but should not be used in production. The `openssl` command creates a 2048-bit RSA key pair and a certificate valid for 365 days.
+- **SSL certificate generation**: Creates a self-signed SSL certificate (`apache-selfsigned.crt`) and its private key (`apache-selfsigned.key`) using OpenSSL. These will be used for encrypting traffic over HTTPS.
 
----
-
-### 9. **Configure SSL in Apache**
+#### **Apache Virtual Host Configuration for SSL**
 ```dockerfile
 RUN echo "<VirtualHost *:443>" > /etc/apache2/sites-available/default-ssl.conf \
   && echo "    SSLEngine on" >> /etc/apache2/sites-available/default-ssl.conf \
@@ -134,81 +148,56 @@ RUN echo "<VirtualHost *:443>" > /etc/apache2/sites-available/default-ssl.conf \
   && echo "    </Directory>" >> /etc/apache2/sites-available/default-ssl.conf \
   && echo "</VirtualHost>" >> /etc/apache2/sites-available/default-ssl.conf
 ```
-- **Purpose**: Configures Apache to use the self-signed SSL certificate for HTTPS communication.
-- **Explanation**:
-  - The `<VirtualHost *:443>` block configures Apache to listen on port 443 (HTTPS).
-  - `SSLEngine on`: Enables SSL for this virtual host.
-  - `SSLCertificateFile` and `SSLCertificateKeyFile`: Point to the self-signed certificate and private key created earlier.
-  - Configures the document root for the web server to the working directory and applies directory-level permissions.
+- **SSL VirtualHost Configuration**: Configures Apache to serve traffic on HTTPS (port 443) with the self-signed SSL certificate created earlier. 
+    - **DocumentRoot** is set to `/usr/src/network_trf_analyzer`, which is the directory containing the Python application.
+    - **Directory settings** ensure that Apache can override configurations (`AllowOverride All`) and grant access (`Require all granted`).
 
----
-
-### 10. **Enable SSL Site Configuration**
+#### **Enable SSL Site Configuration**
 ```dockerfile
 RUN a2ensite default-ssl.conf
 ```
-- **Purpose**: Enables the default SSL site configuration in Apache.
-- **Explanation**: Ensures Apache uses the SSL configuration we just set up.
+- **Enable SSL site**: Activates the SSL site configuration (`default-ssl.conf`) to ensure that Apache serves traffic securely over HTTPS.
 
----
-
-### 11. **Create .htaccess File for Directory Protection**
+#### **Restrict Access to Sensitive Directories**
 ```dockerfile
-RUN echo "AuthType Basic" > /usr/src/network_trf_analyzer/.htaccess \
-  && echo "AuthName \"Restricted Access\"" >> /usr/src/network_trf_analyzer/.htaccess \
-  && echo "AuthUserFile /usr/src/network_trf_analyzer/.htpasswd" >> /usr/src/network_trf_analyzer/.htaccess \
-  && echo "Require valid-user" >> /usr/src/network_trf_analyzer/.htaccess
-```
-- **Purpose**: Sets up basic HTTP authentication for access control to the application directory.
-- **Explanation**: 
-  - `AuthType Basic`: Specifies basic HTTP authentication.
-  - `AuthName`: Defines the realm for authentication.
-  - `AuthUserFile`: Points to the `.htpasswd` file (which contains username and password).
-  - `Require valid-user`: Ensures only authenticated users can access the directory.
+RUN echo "<Directory /usr/src/network_trf_analyzer>" > /etc/apache2/conf-available/
 
----
-
-### 12. **Secure Sensitive Directories
-
-**
-```dockerfile
-RUN echo "<Directory /usr/src/network_trf_analyzer>" > /etc/apache2/conf-available/000-local.conf \
+000-local.conf \
   && echo "    Require all denied" >> /etc/apache2/conf-available/000-local.conf \
   && echo "</Directory>" >> /etc/apache2/conf-available/000-local.conf
 ```
-- **Purpose**: Restricts access to sensitive directories.
-- **Explanation**: Ensures that no unauthorized user can access the specified directory.
+- **Restrict directory access**: Denies access to the directory `/usr/src/network_trf_analyzer` unless otherwise specified, enhancing security.
 
----
-
-### 13. **Enable Local Directory Restrictions**
+#### **Create .htpasswd for Basic Authentication**
 ```dockerfile
-RUN a2enconf 000-local
+RUN htpasswd -cb /usr/src/network_trf_analyzer/.htpasswd user password \
+  && echo "AuthType Basic" > /usr/src/network_trf_analyzer/.htaccess \
+  && echo "AuthName \"Restricted Access\"" >> /usr/src/network_trf_analyzer/.htaccess \
+  && echo "AuthUserFile /usr/src/network_trf_analyzer/.htpasswd" >> /usr/src/network_trf_analyzer/.htaccess \
+  && echo "Require valid-user" >> /usr/src/network_trf_analyzer/.htaccess \
+  && chmod 600 /usr/src/network_trf_analyzer/.htpasswd
 ```
-- **Purpose**: Applies the local directory restriction configuration to Apache.
+- **Create `.htpasswd`**: Uses the `htpasswd` command to create a `.htpasswd` file containing user credentials (username and password) for basic authentication.
+- **Configure `.htaccess`**: Sets up Basic Authentication using the `.htpasswd` file, requiring users to authenticate before accessing the application.
 
----
-
-### 14. **Copy and Make the geoip.sh Script Executable**
+#### **Make GeoIP Script Executable**
 ```dockerfile
 COPY geoip.sh ./
 RUN chmod +x geoip.sh
 ```
-- **Purpose**: Copies the `geoip.sh` script into the container and makes it executable.
-- **Explanation**: This script is part of the application setup and is executed when the container starts.
+- **Copy script**: Copies the `geoip.sh` script into the container and makes it executable.
 
----
-
-### 15. **Set Entry Point and Start Apache**
+#### **Set Permissions for Sensitive Files**
 ```dockerfile
-ENTRYPOINT ["bash", "/usr/src/network_trf_analyzer/geoip.sh"]
-CMD service apache2 start && tail -f /dev/null
+RUN chmod -R 750 /usr/src/network_trf_analyzer
 ```
-- **Purpose**: Defines the entry point and start command for the container.
-- **Explanation**:
-  - `ENTRYPOINT`: Executes the `geoip.sh` script when the container starts.
-  - `CMD`: Starts the Apache server in the background and keeps the container running with `tail -f /dev/null`.
+- **Set permissions**: Ensures that the application files have the appropriate permissions, allowing access only to necessary users.
 
 ---
 
-This Dockerfile ensures that the container is configured for a secure, Apache-backed, Python application with HTTPS support and access control, making it suitable for both development environments.
+## Conclusion
+
+This Dockerfile creates a secure, production-ready image for serving a Python-based web application with Apache using SSL and Basic Authentication. It follows security best practices like:
+- Running the application as a non-root user.
+- Enabling SSL encryption to ensure secure data transmission.
+- Configuring Apache to minimize exposed information and harden the server's security.
