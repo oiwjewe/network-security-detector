@@ -1,301 +1,209 @@
-<h3>Documentation</h3><br>
+<h3>Documentation</h3><br><br>
 
-A detailed technical report for the entire script. I’ll break it down by each section and function, explaining what they do:
-
----
-
-## **Technical Report: Anomaly Detection and Security Enforcement Script**
-
-### **1. Imports and Setup**
-```python
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import IsolationForest
-from sklearn.svm import OneClassSVM
-from keras.models import Model
-from keras.layers import Input, Dense
-from sklearn.preprocessing import StandardScaler
-import geopy.distance
-import geoip2.database
-from sklearn.cluster import DBSCAN
-from sklearn.metrics import silhouette_score
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import matplotlib.pyplot as plt
-import os
-```
-- **Libraries**:
-  - `pandas` & `numpy`: Used for data manipulation and numerical operations.
-  - `sklearn`: Provides machine learning models (Isolation Forest, One-Class SVM) and preprocessing tools.
-  - `keras`: Used to build and train the autoencoder neural network.
-  - `geopy` & `geoip2`: For geolocation services to detect IP spoofing.
-  - `matplotlib`: For generating and saving plots (e.g., visualizations of risk scores).
-  - `os`: For handling file operations (e.g., saving files to a directory).
-  - `smtplib`, `MIMEText`, `MIMEMultipart`: For sending email alerts when suspicious activity is detected.
+Below is a technical documentation for the Dockerfile you've provided. It explains each part of the Dockerfile step-by-step, making it easier to understand and maintain.
 
 ---
 
-### **2. Output Directory Setup**
-```python
-output_dir = './output_files'
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-```
-- **Purpose**: Creates a directory (`output_files`) where all output files (e.g., risk scores, blocked IPs, images) will be stored.
+# Technical Documentation for the Dockerfile
+
+## Overview
+
+This Dockerfile builds a Docker image that serves a Python-based web application using **Apache HTTP Server** with **SSL/TLS** encryption and **Basic Authentication**. It is designed to run a Python web application inside a **non-root user** environment while ensuring security best practices for the Apache server.
+
+The Docker image has two stages:
+1. **Build stage**: Where dependencies are installed and the application is prepared.
+2. **Runtime stage**: Where the application is served by Apache and configurations like SSL and Basic Authentication are applied.
 
 ---
 
-### **3. Data Preprocessing**
-```python
-def preprocess_data(data):
-    scaler = StandardScaler()
-    data['ClientSrcPort'] = scaler.fit_transform(data['ClientSrcPort'].values.reshape(-1, 1))
-    data['ClientDstPort'] = scaler.fit_transform(data['ClientDstPort'].values.reshape(-1, 1))
-    return data
-```
-- **Purpose**: 
-  - Standardizes the `ClientSrcPort` and `ClientDstPort` features to have zero mean and unit variance, which improves the performance of machine learning models.
-  
----
+## Stages and Layers Breakdown
 
-### **4. Anomaly Detection with Multiple Models**
-The script uses multiple methods for anomaly detection, ensuring robust identification of malicious activities.
+### **1. Build Stage**
 
-#### **Isolation Forest**
-```python
-def isolation_forest_detection(data, contamination=0.05):
-    iso_forest = IsolationForest(contamination=contamination, random_state=42)
-    iso_pred = iso_forest.fit_predict(data)
-    return iso_pred
-```
-- **Purpose**: 
-  - Detects anomalies based on an ensemble of trees. The `contamination` parameter specifies the expected proportion of outliers in the data.
-  
-#### **One-Class SVM**
-```python
-def one_class_svm_detection(data):
-    svm = OneClassSVM(kernel="rbf", gamma='scale', nu=0.05)
-    svm_pred = svm.fit_predict(data)
-    return svm_pred
-```
-- **Purpose**: 
-  - Uses the One-Class SVM method to detect anomalies based on a non-linear decision boundary.
+This stage is responsible for preparing the environment to install dependencies and the application.
 
-#### **Autoencoder (Neural Network)**
-```python
-def build_autoencoder(input_dim):
-    input_layer = Input(shape=(input_dim,))
-    encoded = Dense(64, activation='relu')(input_layer)
-    encoded = Dense(32, activation='relu')(encoded)
-    encoded = Dense(16, activation='relu')(encoded)
-    decoded = Dense(32, activation='relu')(encoded)
-    decoded = Dense(64, activation='relu')(decoded)
-    decoded = Dense(input_dim, activation='sigmoid')(decoded)
-    
-    autoencoder = Model(input_layer, decoded)
-    autoencoder.compile(optimizer='adam', loss='mean_squared_error')
-    return autoencoder
+#### **Base Image**
+```dockerfile
+FROM python:3.11-slim as build
 ```
-- **Purpose**: 
-  - A deep learning model built using Keras. The autoencoder learns to compress the input data (encoding) and then reconstruct it (decoding). Anomalies are detected based on the reconstruction error.
+- **Base Image**: We use the official `python:3.11-slim` image, which is a slim version of Python 3.11, to minimize the image size. 
+- **Stage alias**: This stage is named `build`, making it easier to reference in multi-stage builds.
 
-```python
-def autoencoder_detection(data, autoencoder, epochs=50, batch_size=32):
-    autoencoder.fit(data, data, epochs=epochs, batch_size=batch_size)
-    reconstructed = autoencoder.predict(data)
-    reconstruction_error = np.mean(np.abs(data - reconstructed), axis=1)
-    return reconstruction_error
+#### **Install Dependencies for Building**
+```dockerfile
+RUN apt-get update && apt-get install -y build-essential wget tar \
+    && apt-get clean
 ```
-- **Purpose**: 
-  - Trains the autoencoder and computes the reconstruction error. Higher errors indicate anomalies.
+- **Install build dependencies**: Installs essential tools needed for building packages or installing dependencies that may require compiling (e.g., `build-essential`, `wget`, `tar`).
+- **Clean**: Removes unnecessary files after installation to reduce the image size.
+
+#### **Working Directory**
+```dockerfile
+WORKDIR /usr/src/network_trf_analyzer
+```
+- **Set working directory**: Specifies the directory inside the container where the build and subsequent actions (like copying files) will take place.
+
+#### **Copy Application Files**
+```dockerfile
+COPY . .
+```
+- **Copy files**: Copies the entire contents of the current directory on the host machine (where the Dockerfile is located) into the `/usr/src/network_trf_analyzer` directory in the container.
 
 ---
 
-### **5. Unsupervised Learning for Novel Attack Detection (DBSCAN)**
-```python
-def unsupervised_detection(data):
-    dbscan = DBSCAN(eps=0.3, min_samples=10)
-    dbscan_labels = dbscan.fit_predict(data)
-    
-    silhouette_avg = silhouette_score(data, dbscan_labels)
-    print(f"Silhouette Score for DBSCAN: {silhouette_avg}")
-    
-    return dbscan_labels
+### **2. Runtime Stage**
+
+This stage prepares the runtime environment by installing the necessary runtime dependencies and configuring the Apache server.
+
+#### **Base Image**
+```dockerfile
+FROM python:3.11-slim
 ```
-- **Purpose**: 
-  - Uses DBSCAN (Density-Based Spatial Clustering) to identify clusters of similar data points. It also computes the silhouette score to evaluate how well the clustering worked.
+- **Base Image**: Again, we use the `python:3.11-slim` image, as it is lightweight and suitable for runtime environments.
+
+#### **Install Apache and Runtime Dependencies**
+```dockerfile
+RUN apt-get update && apt-get install -y \
+    apache2 \
+    apache2-utils \
+    ssl-cert \
+    python3-pip \
+    && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+```
+- **Install Apache**: Installs the `apache2` package, which is the web server that will serve the Python application.
+- **Apache Utilities**: Installs `apache2-utils`, which includes tools like `htpasswd` for managing `.htpasswd` files.
+- **SSL Certificates**: Installs `ssl-cert` for generating self-signed SSL certificates.
+- **Python Pip**: Installs `pip` to manage Python packages inside the container.
+- **Clean up**: Removes unnecessary package files to keep the image lean.
+
+#### **Create a Non-Root User**
+```dockerfile
+RUN useradd -m network_user
+```
+- **User creation**: Creates a non-root user (`network_user`) to run the application. Running containers as non-root users is a security best practice.
+
+#### **Set the Working Directory and Switch User**
+```dockerfile
+WORKDIR /usr/src/network_trf_analyzer
+USER network_user
+```
+- **Working directory**: Ensures that the working directory is set to `/usr/src/network_trf_analyzer`, where the application files are located.
+- **Switch user**: Switches to the newly created non-root user (`network_user`) for running the application.
+
+#### **Install Python Dependencies**
+```dockerfile
+COPY requirements.txt ./
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
+```
+- **Install Python packages**: Copies the `requirements.txt` (which contains the list of required Python libraries) into the container and installs the dependencies using `pip`.
+
+#### **Disable Unnecessary Apache Modules**
+```dockerfile
+RUN a2dismod -f status && a2dismod -f autoindex
+```
+- **Disable unnecessary Apache modules**: The `status` and `autoindex` modules are disabled to reduce the attack surface of the Apache server. 
+    - `status`: Disables the server status module.
+    - `autoindex`: Disables directory listing (prevents the server from showing a listing of files in a directory if no index file is found).
+
+#### **Enable Required Apache Modules**
+```dockerfile
+RUN a2enmod ssl headers rewrite
+```
+- **Enable Apache modules**: Enables the `ssl`, `headers`, and `rewrite` modules for SSL support, HTTP headers manipulation, and URL rewriting.
+
+#### **Secure Apache Settings**
+```dockerfile
+RUN echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \
+  && echo "ServerSignature Off" >> /etc/apache2/apache2.conf \
+  && echo "TraceEnable Off" >> /etc/apache2/apache2.conf \
+  && echo "Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains\"" >> /etc/apache2/apache2.conf \
+  && echo "Header always set X-Content-Type-Options \"nosniff\"" >> /etc/apache2/apache2.conf \
+  && echo "Header always set X-Frame-Options \"DENY\"" >> /etc/apache2/apache2.conf \
+  && echo "Header always set X-XSS-Protection \"1; mode=block\"" >> /etc/apache2/apache2.conf \
+  && echo "Header always set Content-Security-Policy \"default-src 'self';\"" >> /etc/apache2/apache2.conf \
+  && echo "AllowEncodedSlashes NoDecode" >> /etc/apache2/apache2.conf \
+  && echo "LogLevel warn" >> /etc/apache2/apache2.conf
+```
+- **Hardening Apache**: Configures Apache security headers and disables potentially dangerous settings:
+    - Disables the `ServerTokens` and `ServerSignature` to hide the Apache version and reduce the information exposed about the server.
+    - Configures strict HTTP security headers (`Strict-Transport-Security`, `X-Content-Type-Options`, etc.) to mitigate common attacks (e.g., clickjacking, cross-site scripting, etc.).
+    - Disables HTTP TRACE method to prevent cross-site tracing attacks.
+
+#### **SSL Configuration**
+```dockerfile
+RUN mkdir -p /etc/ssl/private && chmod 700 /etc/ssl/private \
+    && mkdir -p /etc/ssl/certs && chmod 755 /etc/ssl/certs \
+    && openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+    -keyout /etc/ssl/private/apache-selfsigned.key \
+    -out /etc/ssl/certs/apache-selfsigned.crt \
+    -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
+```
+- **SSL certificate generation**: Creates a self-signed SSL certificate (`apache-selfsigned.crt`) and its private key (`apache-selfsigned.key`) using OpenSSL. These will be used for encrypting traffic over HTTPS.
+
+#### **Apache Virtual Host Configuration for SSL**
+```dockerfile
+RUN echo "<VirtualHost *:443>" > /etc/apache2/sites-available/default-ssl.conf \
+  && echo "    SSLEngine on" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "    DocumentRoot /usr/src/network_trf_analyzer" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "    <Directory /usr/src/network_trf_analyzer>" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "        AllowOverride All" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "        Require all granted" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "    </Directory>" >> /etc/apache2/sites-available/default-ssl.conf \
+  && echo "</VirtualHost>" >> /etc/apache2/sites-available/default-ssl.conf
+```
+- **SSL VirtualHost Configuration**: Configures Apache to serve traffic on HTTPS (port 443) with the self-signed SSL certificate created earlier. 
+    - **DocumentRoot** is set to `/usr/src/network_trf_analyzer`, which is the directory containing the Python application.
+    - **Directory settings** ensure that Apache can override configurations (`AllowOverride All`) and grant access (`Require all granted`).
+
+#### **Enable SSL Site Configuration**
+```dockerfile
+RUN a2ensite default-ssl.conf
+```
+- **Enable SSL site**: Activates the SSL site configuration (`default-ssl.conf`) to ensure that Apache serves traffic securely over HTTPS.
+
+#### **Restrict Access to Sensitive Directories**
+```dockerfile
+RUN echo "<Directory /usr/src/network_trf_analyzer>" > /etc/apache2/conf-available/
+
+000-local.conf \
+  && echo "    Require all denied" >> /etc/apache2/conf-available/000-local.conf \
+  && echo "</Directory>" >> /etc/apache2/conf-available/000-local.conf
+```
+- **Restrict directory access**: Denies access to the directory `/usr/src/network_trf_analyzer` unless otherwise specified, enhancing security.
+
+#### **Create .htpasswd for Basic Authentication**
+```dockerfile
+RUN htpasswd -cb /usr/src/network_trf_analyzer/.htpasswd user password \
+  && echo "AuthType Basic" > /usr/src/network_trf_analyzer/.htaccess \
+  && echo "AuthName \"Restricted Access\"" >> /usr/src/network_trf_analyzer/.htaccess \
+  && echo "AuthUserFile /usr/src/network_trf_analyzer/.htpasswd" >> /usr/src/network_trf_analyzer/.htaccess \
+  && echo "Require valid-user" >> /usr/src/network_trf_analyzer/.htaccess \
+  && chmod 600 /usr/src/network_trf_analyzer/.htpasswd
+```
+- **Create `.htpasswd`**: Uses the `htpasswd` command to create a `.htpasswd` file containing user credentials (username and password) for basic authentication.
+- **Configure `.htaccess`**: Sets up Basic Authentication using the `.htpasswd` file, requiring users to authenticate before accessing the application.
+
+#### **Make GeoIP Script Executable**
+```dockerfile
+COPY geoip.sh ./
+RUN chmod +x geoip.sh
+```
+- **Copy script**: Copies the `geoip.sh` script into the container and makes it executable.
+
+#### **Set Permissions for Sensitive Files**
+```dockerfile
+RUN chmod -R 750 /usr/src/network_trf_analyzer
+```
+- **Set permissions**: Ensures that the application files have the appropriate permissions, allowing access only to necessary users.
 
 ---
 
-### **6. GeoIP-based IP Spoofing Detection**
-```python
-def ip_spoofing_detection(ip_list):
-    reader = geoip2.database.Reader('/path/to/GeoLite2-City.mmdb')
-    spoofing_flags = []
-    
-    for ip in ip_list:
-        response = reader.city(ip)
-        if response.location.latitude is None or response.location.longitude is None:
-            spoofing_flags.append(True)
-        else:
-            spoofing_flags.append(False)
-    
-    return spoofing_flags
-```
-- **Purpose**: 
-  - Detects potential IP spoofing by checking the geographical location of IP addresses. If the location data is invalid or inconsistent, the IP is flagged as suspicious.
+## Conclusion
 
----
-
-### **7. Port Scanning Detection**
-```python
-def port_scanning_detection(data):
-    port_scanning_flags = []
-    unique_ips = data['ClientIP'].unique()
-    
-    for ip in unique_ips:
-        ip_data = data[data['ClientIP'] == ip]
-        if ip_data['ClientSrcPort'].nunique() > 10:
-            port_scanning_flags.append(True)
-        else:
-            port_scanning_flags.append(False)
-    
-    return port_scanning_flags
-```
-- **Purpose**: 
-  - Detects potential port scanning behavior by identifying IP addresses that use more than a certain number of source ports (indicating scanning activity).
-
----
-
-### **8. Man-in-the-Middle (MITM) Attack Detection (Placeholder)**
-```python
-def mitm_detection(data):
-    return [False] * len(data)
-```
-- **Purpose**: 
-  - Placeholder function for MITM attack detection. In a real scenario, this could analyze SSL/TLS handshakes or HTTP headers for anomalies.
-
----
-
-### **9. Policy Enforcement (Alerts and Blocking)**
-```python
-def enforce_security_policy(risk_scores, threshold=0.8):
-    risky_ips = []
-    
-    for i, score in enumerate(risk_scores):
-        if score > threshold:
-            risky_ips.append(i)
-    
-    blocked_ips = block_risky_ips(risky_ips)
-    send_alert_email(risky_ips)
-
-    return risky_ips, blocked_ips
-```
-- **Purpose**: 
-  - Enforces a security policy by identifying risky IPs with a risk score above a threshold. It blocks these IPs and sends an alert via email.
-
-#### **Block Risky IPs**
-```python
-def block_risky_ips(risky_ips):
-    blocked_ips = risky_ips
-    save_to_file(blocked_ips, 'blocked_ips.txt')
-    print(f"Blocked IPs: {blocked_ips}")
-    return blocked_ips
-```
-- **Purpose**: 
-  - Simulates blocking risky IPs and saves them to a file (`blocked_ips.txt`). In a real system, this would interact with network/firewall tools.
-
-#### **Send Alert Email**
-```python
-def send_alert_email(risky_ips):
-    sender_email = "your_email@example.com"
-    receiver_email = "admin@example.com"
-    subject = "Security Alert: Suspicious Activity Detected"
-    
-    body = f"Alert: The following IP addresses are exhibiting suspicious activity: {risky_ips}"
-    
-    message = MIMEMultipart()
-    message['From'] = sender_email
-    message['To'] = receiver_email
-    message['Subject'] = subject
-    message.attach(MIMEText(body, 'plain'))
-    
-    try:
-        with smtplib.SMTP('smtp.example.com', 587) as server:
-            server.starttls()
-            server.login(sender_email, 'your_password')
-            server.sendmail(sender_email, receiver_email, message.as_string())
-            print("Alert sent successfully.")
-    except Exception as e:
-        print(f"Error sending alert: {e}")
-```
-- **Purpose**: 
-  - Sends an email alert to an admin when risky IPs are detected.
-
----
-
-### **10. Save Results and Images**
-```python
-def save_to_file(data, filename):
-    if isinstance(data, list):
-        with open(os.path.join(output_dir, filename), 'w') as f:
-            f.write("\n".join(map(str, data)))
-    elif isinstance(data, pd.DataFrame):
-        data.to_csv(os.path.join(output_dir, filename), index=False)
-```
-- **Purpose**: 
-  - Saves detection results (e.g., risky IPs or dataframes) to text or CSV files.
-
-```python
-def save_image(fig, filename):
-
-
-    fig.savefig(os.path.join(output_dir, filename))
-    print(f"Image saved to {filename}")
-```
-- **Purpose**: 
-  - Saves matplotlib figures (e.g., risk score plots) to image files.
-
----
-
-### **11. Putting It All Together**
-```python
-data = pd.read_csv('network_traffic_data.csv')
-data = preprocess_data(data)
-
-iso_pred = isolation_forest_detection(data)
-svm_pred = one_class_svm_detection(data)
-autoencoder = build_autoencoder(data.shape[1])
-reconstruction_error = autoencoder_detection(data, autoencoder)
-
-dbscan_labels = unsupervised_detection(data)
-spoofing_flags = ip_spoofing_detection(data['ClientIP'].values)
-port_scanning_flags = port_scanning_detection(data)
-mitm_flags = mitm_detection(data)
-
-risk_scores = np.mean([iso_pred, svm_pred, reconstruction_error > np.percentile(reconstruction_error, 95)], axis=0)
-risky_ips, blocked_ips = enforce_security_policy(risk_scores)
-
-print(f"Detected risky IPs: {risky_ips}")
-
-fig, ax = plt.subplots()
-ax.plot(risk_scores)
-ax.set_title("Risk Scores Plot")
-save_image(fig, 'risk_scores_plot.png')
-
-save_to_file(risky_ips, 'risky_ips.txt')
-save_to_file(pd.DataFrame({'IP': risky_ips, 'Score': risk_scores}), 'risky_ips.csv')
-```
-- **Purpose**: 
-  - This is the main workflow of the script. It loads and preprocesses data, applies anomaly detection models, detects spoofing and port scanning, computes risk scores, enforces security policies, and saves the results.<br>
-
----
-
-
-
-# Further scripts documentation can be read at:
-
-- [Dockerfile](dockerfile-doc.md)<br>
-- [Geo-ip](geo-ip-doc.md)<br>
-
+This Dockerfile creates a secure, production-ready image for serving a Python-based web application with Apache using SSL and Basic Authentication. It follows security best practices like:
+- Running the application as a non-root user.
+- Enabling SSL encryption to ensure secure data transmission.
+- Configuring Apache to minimize exposed information and harden the server's security.
