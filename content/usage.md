@@ -7,7 +7,7 @@ The required columns to run this tool is:<br>
 
 To run **network-security-detector tool**, you’ll need to use the Docker basic comands as suggested in the examples bellow:<br>
 
-A initial tests could be done with this sample:<br>
+Initial tests can be done with this sample:<br>
 - [Data sample](sample.csv)<br><br>
 
 
