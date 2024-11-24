@@ -23,16 +23,14 @@ Then, copy the file in your real system to inside the container:<br>
 
 **2)Execute**: To run the tool, execute the following command:<br>
 
-`sudo docker run --rm -p 443:443 w1ndx/network-traffic-analyzer:first bash -c "service apache2 start && python3 /usr/src/network_trf_analyzer/network_trf_analyzer.py"`
+`docker run -d -p 80:80 -p 443:443 --name network-traffic-analyzer w1ndx/network-traffic-analyzer:first`
 
-
-`sudo docker run --rm w1ndx/network-traffic-analyzer:first python3 ./network_trf_analyzer.py`
 
 **3)Remove data manually**:<br>
 
 To remove specific files:<br>
 
-`docker exec w1ndx/network-traffic-analyzer:first rm /usr/src/network_trf_analyzer/arquivo.csv`<br>
+`docker exec w1ndx/network-traffic-analyzer:first rm /usr/src/network_trf_analyzer/arquivo.csv`
 
 To remove all .CSV files in a directory inside the container:<br>
 
