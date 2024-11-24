@@ -1,9 +1,8 @@
 <h3>Documentation</h3><br><br>
-Below is a detailed report that provides an explanation of each part of the code:
 
 ---
 
-### **Report on Network Security Anomaly Detection System**
+### **Report on Network Security Anomaly Detection Tool**
 
 This document outlines the structure and functionality of a network security system that detects anomalies, potential attacks, and other suspicious behaviors in network traffic. It utilizes a variety of machine learning models, clustering algorithms, geolocation techniques, and email alerting to enhance the security monitoring process.
 
