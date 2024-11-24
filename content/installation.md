@@ -1,4 +1,4 @@
-<h3>Installation and Usage:</h3><br>
+<h3>Installation:</h3><br>
 
 To run this script, you’ll need to use the Docker image available on Docker Hub. Follow the instructions below for Debian-based Linux distributions. For other Linux distributions, operating systems, or if you encounter any issues during Docker installation, please refer to the official Docker documentation at https://docs.docker.com/get-docker/
 
