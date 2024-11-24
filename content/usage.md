@@ -16,14 +16,19 @@ https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d26
 
 **1)Add data**: Fisrt add a sample of data in .CSV format for machine learning training.<br>
 
-``
+Firs run the container:<br>
+
+`docker run -d --name network-traffic-analyzer:first w1ndx/network-traffic-analyzer:first`<br>
+
+Then, copy the file in your real system to inside the container:<br>
+
+`docker cp /caminho/para/seu/arquivo.csv w1ndx/network-traffic-analyzer:first:/usr/src/network_trf_analyzer/arquivo.csv` #replace the file path and file name to feet your needs
 
 **2)Execute**: To run the tool, simply execute the following command:<br>
 
 `sudo docker run --rm w1ndx/network-traffic-analyzer:first python3 ./network_trf_analyzer.py`
 
-
-**3)Remove data**: To remove the data manually, run:<br>
+**3)Remove data**: To remove the data manually:<br>
 
 To remove specific files:<br>
 
