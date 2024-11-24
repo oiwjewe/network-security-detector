@@ -201,3 +201,4 @@ This Dockerfile creates a secure, production-ready image for serving a Python-ba
 - Running the application as a non-root user.
 - Enabling SSL encryption to ensure secure data transmission.
 - Configuring Apache to minimize exposed information and harden the server's security.
+- Some hardening configurations according to CIS Benchmark were appliyed to Docker and Apache Server, however, it doesn't attempt important requirements. For example. It was created user and password inside .htacess that should be rethink in future, due security concerns, plus pip is runin as root in Docker, wich is another point of concern. Both solutions required more skills and storage that I was able to supply at this moment.
