@@ -293,7 +293,7 @@ This system uses machine learning models, geolocation techniques, clustering alg
 
 # Documentation to secundary scripts can be find at:
 
--[Dockerfile](dockerfile-doc.md) 
--[GeoIP](geo-ip-doc.md)
+-[Dockerfile](dockerfile-doc.md) <br>
+-[GeoIP](geo-ip-doc.md)<br><br>
 
 
