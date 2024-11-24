@@ -1,5 +1,5 @@
 <h3>Documentation</h3><br><br>
-Certainly! Below is a detailed report that provides an explanation of each part of the code, while also including the relevant code segments. I'll structure it with smooth explanations for each section:
+Below is a detailed report that provides an explanation of each part of the code:
 
 ---
 
@@ -294,7 +294,7 @@ This system uses machine learning models, geolocation techniques, clustering alg
 
 # Documentation to secundary scripts can be find at:
 
--[Dockerfile] (dockerfile-doc.md)
--[GeoIP] 
+-[Dockerfile](dockerfile-doc.md) 
+-[GeoIP](geo-ip-doc.md)
 
 
