@@ -1,63 +1,94 @@
 <h3>Documentation</h3><br>
 
-Technical Report for Network Traffic Anomaly Detection Script
-Overview
-This script is designed to analyze network traffic data and detect various types of suspicious activities and security threats. It uses machine learning models to perform anomaly detection, geo-location checks to identify IP spoofing, and implements policy enforcement to take actions on suspicious IPs. The script processes incoming traffic data, applies multiple detection algorithms, and generates output files such as images, CSVs, and text files. These results are also uploaded to an Apache server for centralized storage and access.
+Sure! Here's a detailed technical report for the entire script. I’ll break it down by each section and function, explaining what they do:
 
-1. Data Preprocessing
-Function: preprocess_data(data)
+---
 
-The data preprocessing step prepares the network traffic data for analysis by normalizing the features that may vary in scale.
+## **Technical Report: Anomaly Detection and Security Enforcement Script**
 
-python
-Copiar código
+### **1. Imports and Setup**
+```python
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import IsolationForest
+from sklearn.svm import OneClassSVM
+from keras.models import Model
+from keras.layers import Input, Dense
+from sklearn.preprocessing import StandardScaler
+import geopy.distance
+import geoip2.database
+from sklearn.cluster import DBSCAN
+from sklearn.metrics import silhouette_score
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import matplotlib.pyplot as plt
+import os
+```
+- **Libraries**:
+  - `pandas` & `numpy`: Used for data manipulation and numerical operations.
+  - `sklearn`: Provides machine learning models (Isolation Forest, One-Class SVM) and preprocessing tools.
+  - `keras`: Used to build and train the autoencoder neural network.
+  - `geopy` & `geoip2`: For geolocation services to detect IP spoofing.
+  - `matplotlib`: For generating and saving plots (e.g., visualizations of risk scores).
+  - `os`: For handling file operations (e.g., saving files to a directory).
+  - `smtplib`, `MIMEText`, `MIMEMultipart`: For sending email alerts when suspicious activity is detected.
+
+---
+
+### **2. Output Directory Setup**
+```python
+output_dir = './output_files'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+```
+- **Purpose**: Creates a directory (`output_files`) where all output files (e.g., risk scores, blocked IPs, images) will be stored.
+
+---
+
+### **3. Data Preprocessing**
+```python
 def preprocess_data(data):
-    # Normalize traffic volume and other necessary features
     scaler = StandardScaler()
     data['ClientSrcPort'] = scaler.fit_transform(data['ClientSrcPort'].values.reshape(-1, 1))
     data['ClientDstPort'] = scaler.fit_transform(data['ClientDstPort'].values.reshape(-1, 1))
     return data
-Explanation: This function uses the StandardScaler from sklearn to normalize the ClientSrcPort and ClientDstPort columns, ensuring that the range of values for these features is standardized. This is crucial because different machine learning algorithms may perform poorly if features have vastly different scales. Normalizing ensures that the machine learning models can treat each feature equally.
-2. Anomaly Detection Using Multiple Models
-The script implements three different machine learning models to detect anomalies in the network traffic data:
+```
+- **Purpose**: 
+  - Standardizes the `ClientSrcPort` and `ClientDstPort` features to have zero mean and unit variance, which improves the performance of machine learning models.
+  
+---
 
-a. Isolation Forest
-Function: isolation_forest_detection(data, contamination=0.05)
+### **4. Anomaly Detection with Multiple Models**
+The script uses multiple methods for anomaly detection, ensuring robust identification of malicious activities.
 
-The Isolation Forest model is used to detect anomalies by isolating observations that are different from the rest.
-
-python
-Copiar código
+#### **Isolation Forest**
+```python
 def isolation_forest_detection(data, contamination=0.05):
     iso_forest = IsolationForest(contamination=contamination, random_state=42)
     iso_pred = iso_forest.fit_predict(data)
     return iso_pred
-Explanation: The Isolation Forest algorithm isolates anomalies by randomly selecting features and splitting the data into partitions. Anomalies are more likely to be isolated early in the process. This function takes the data and fits the Isolation Forest model to detect anomalies, where the contamination parameter specifies the proportion of outliers in the data. The function returns the predicted labels for each data point (1 for normal, -1 for anomalous).
-b. One-Class SVM
-Function: one_class_svm_detection(data)
-
-The One-Class SVM (Support Vector Machine) model is used for anomaly detection by finding a boundary that separates the normal data from outliers.
-
-python
-Copiar código
+```
+- **Purpose**: 
+  - Detects anomalies based on an ensemble of trees. The `contamination` parameter specifies the expected proportion of outliers in the data.
+  
+#### **One-Class SVM**
+```python
 def one_class_svm_detection(data):
     svm = OneClassSVM(kernel="rbf", gamma='scale', nu=0.05)
     svm_pred = svm.fit_predict(data)
     return svm_pred
-Explanation: The One-Class SVM is trained on only the "normal" data (using the fit method) and tries to learn the boundary that separates this data from any potential outliers (anomalies). In the fit_predict() method, it returns 1 for normal data and -1 for anomalies. The model uses an RBF kernel to learn the complex patterns within the data.
-c. Autoencoder
-Function: build_autoencoder(input_dim) and autoencoder_detection(data, autoencoder, epochs=50, batch_size=32)
+```
+- **Purpose**: 
+  - Uses the One-Class SVM method to detect anomalies based on a non-linear decision boundary.
 
-Autoencoders are neural networks used for unsupervised anomaly detection. They learn to compress the data into a lower-dimensional representation and reconstruct it. Large reconstruction errors are indicative of anomalies.
-
-python
-Copiar código
+#### **Autoencoder (Neural Network)**
+```python
 def build_autoencoder(input_dim):
     input_layer = Input(shape=(input_dim,))
     encoded = Dense(64, activation='relu')(input_layer)
     encoded = Dense(32, activation='relu')(encoded)
     encoded = Dense(16, activation='relu')(encoded)
-    
     decoded = Dense(32, activation='relu')(encoded)
     decoded = Dense(64, activation='relu')(decoded)
     decoded = Dense(input_dim, activation='sigmoid')(decoded)
@@ -65,38 +96,40 @@ def build_autoencoder(input_dim):
     autoencoder = Model(input_layer, decoded)
     autoencoder.compile(optimizer='adam', loss='mean_squared_error')
     return autoencoder
+```
+- **Purpose**: 
+  - A deep learning model built using Keras. The autoencoder learns to compress the input data (encoding) and then reconstruct it (decoding). Anomalies are detected based on the reconstruction error.
 
+```python
 def autoencoder_detection(data, autoencoder, epochs=50, batch_size=32):
     autoencoder.fit(data, data, epochs=epochs, batch_size=batch_size)
     reconstructed = autoencoder.predict(data)
     reconstruction_error = np.mean(np.abs(data - reconstructed), axis=1)
     return reconstruction_error
-Explanation: The build_autoencoder() function constructs an autoencoder model consisting of an encoder that compresses the input data and a decoder that reconstructs it. During training, the autoencoder learns to minimize the difference between the input and the reconstructed data.
-The autoencoder_detection() function fits the model to the data and calculates the reconstruction error for each sample. A high reconstruction error indicates an anomaly, as the model was unable to accurately reconstruct the data point.
-3. Unsupervised Learning for Novel Attack Detection
-Function: unsupervised_detection(data)
+```
+- **Purpose**: 
+  - Trains the autoencoder and computes the reconstruction error. Higher errors indicate anomalies.
 
-The DBSCAN algorithm is used for detecting novel attack patterns based on clustering.
+---
 
-python
-Copiar código
+### **5. Unsupervised Learning for Novel Attack Detection (DBSCAN)**
+```python
 def unsupervised_detection(data):
     dbscan = DBSCAN(eps=0.3, min_samples=10)
     dbscan_labels = dbscan.fit_predict(data)
     
-    # Silhouette Score for evaluating clustering
     silhouette_avg = silhouette_score(data, dbscan_labels)
     print(f"Silhouette Score for DBSCAN: {silhouette_avg}")
     
     return dbscan_labels
-Explanation: DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a clustering algorithm that groups together points that are closely packed while marking outliers as noise. The silhouette_score measures how well the data points are clustered. A higher silhouette score indicates better-defined clusters. This method returns the labels for each data point, which could be used to detect novel attacks by identifying noise points.
-4. GeoIP-based IP Spoofing Detection
-Function: ip_spoofing_detection(ip_list)
+```
+- **Purpose**: 
+  - Uses DBSCAN (Density-Based Spatial Clustering) to identify clusters of similar data points. It also computes the silhouette score to evaluate how well the clustering worked.
 
-This function uses the GeoIP2 library to detect IP spoofing by checking the geolocation data of IP addresses.
+---
 
-python
-Copiar código
+### **6. GeoIP-based IP Spoofing Detection**
+```python
 def ip_spoofing_detection(ip_list):
     reader = geoip2.database.Reader('/path/to/GeoLite2-City.mmdb')
     spoofing_flags = []
@@ -104,35 +137,159 @@ def ip_spoofing_detection(ip_list):
     for ip in ip_list:
         response = reader.city(ip)
         if response.location.latitude is None or response.location.longitude is None:
-            spoofing_flags.append(True)  # IP geolocation invalid or inconsistent
+            spoofing_flags.append(True)
         else:
             spoofing_flags.append(False)
     
     return spoofing_flags
-Explanation: The function uses the GeoIP2 database to retrieve geolocation information for each IP address. If the geolocation is invalid or inconsistent, it flags the IP as potentially spoofed. This helps identify malicious activity where attackers might disguise their actual IPs.
-5. Policy Enforcement: Block or Alert on High-Risk IPs
-Function: enforce_security_policy(risk_scores, threshold=0.8)
+```
+- **Purpose**: 
+  - Detects potential IP spoofing by checking the geographical location of IP addresses. If the location data is invalid or inconsistent, the IP is flagged as suspicious.
 
-This function is responsible for identifying high-risk IPs based on calculated risk scores and taking action (alerting or blocking).
+---
 
-python
-Copiar código
+### **7. Port Scanning Detection**
+```python
+def port_scanning_detection(data):
+    port_scanning_flags = []
+    unique_ips = data['ClientIP'].unique()
+    
+    for ip in unique_ips:
+        ip_data = data[data['ClientIP'] == ip]
+        if ip_data['ClientSrcPort'].nunique() > 10:
+            port_scanning_flags.append(True)
+        else:
+            port_scanning_flags.append(False)
+    
+    return port_scanning_flags
+```
+- **Purpose**: 
+  - Detects potential port scanning behavior by identifying IP addresses that use more than a certain number of source ports (indicating scanning activity).
+
+---
+
+### **8. Man-in-the-Middle (MITM) Attack Detection (Placeholder)**
+```python
+def mitm_detection(data):
+    return [False] * len(data)
+```
+- **Purpose**: 
+  - Placeholder function for MITM attack detection. In a real scenario, this could analyze SSL/TLS handshakes or HTTP headers for anomalies.
+
+---
+
+### **9. Policy Enforcement (Alerts and Blocking)**
+```python
 def enforce_security_policy(risk_scores, threshold=0.8):
     risky_ips = []
     
     for i, score in enumerate(risk_scores):
         if score > threshold:
-            risky_ips.append(i)  # Collect risky IP indices
+            risky_ips.append(i)
     
-    # Simulate sending alert via email (this can be replaced with your alerting mechanism)
+    blocked_ips = block_risky_ips(risky_ips)
     send_alert_email(risky_ips)
 
-    return risky_ips
-Explanation: This function checks if the risk score for an IP exceeds a predefined threshold. If it does, the IP is considered high-risk and is flagged. The function then simulates sending an email alert (via the send_alert_email function). This feature allows for immediate notification of security threats.
-6. Saving Results and Uploading Files
-The script saves generated output such as plots and CSVs to files, which are then uploaded to an Apache server for centralized access.
+    return risky_ips, blocked_ips
+```
+- **Purpose**: 
+  - Enforces a security policy by identifying risky IPs with a risk score above a threshold. It blocks these IPs and sends an alert via email.
 
-Saving Files: The images and analysis results (such as risk scores, anomalous IPs, etc.) are saved locally on the system using standard Python file operations.
-Uploading Files: A separate Python script uploads these files to the Apache server for easy access. This helps centralize the analysis results for further investigation or sharing.
-Conclusion
-This script integrates multiple machine learning models and security techniques to detect anomalies, suspicious activities, and attacks within network traffic data. It combines advanced anomaly detection with machine learning, unsupervised learning, IP geolocation checks, and policy enforcement. Additionally, it automates the process of saving, organizing, and uploading generated reports and images to an Apache server, providing a centralized repository for security professionals to access the results.
+#### **Block Risky IPs**
+```python
+def block_risky_ips(risky_ips):
+    blocked_ips = risky_ips
+    save_to_file(blocked_ips, 'blocked_ips.txt')
+    print(f"Blocked IPs: {blocked_ips}")
+    return blocked_ips
+```
+- **Purpose**: 
+  - Simulates blocking risky IPs and saves them to a file (`blocked_ips.txt`). In a real system, this would interact with network/firewall tools.
+
+#### **Send Alert Email**
+```python
+def send_alert_email(risky_ips):
+    sender_email = "your_email@example.com"
+    receiver_email = "admin@example.com"
+    subject = "Security Alert: Suspicious Activity Detected"
+    
+    body = f"Alert: The following IP addresses are exhibiting suspicious activity: {risky_ips}"
+    
+    message = MIMEMultipart()
+    message['From'] = sender_email
+    message['To'] = receiver_email
+    message['Subject'] = subject
+    message.attach(MIMEText(body, 'plain'))
+    
+    try:
+        with smtplib.SMTP('smtp.example.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, 'your_password')
+            server.sendmail(sender_email, receiver_email, message.as_string())
+            print("Alert sent successfully.")
+    except Exception as e:
+        print(f"Error sending alert: {e}")
+```
+- **Purpose**: 
+  - Sends an email alert to an admin when risky IPs are detected.
+
+---
+
+### **10. Save Results and Images**
+```python
+def save_to_file(data, filename):
+    if isinstance(data, list):
+        with open(os.path.join(output_dir, filename), 'w') as f:
+            f.write("\n".join(map(str, data)))
+    elif isinstance(data, pd.DataFrame):
+        data.to_csv(os.path.join(output_dir, filename), index=False)
+```
+- **Purpose**: 
+  - Saves detection results (e.g., risky IPs or dataframes) to text or CSV files.
+
+```python
+def save_image(fig, filename):
+
+
+    fig.savefig(os.path.join(output_dir, filename))
+    print(f"Image saved to {filename}")
+```
+- **Purpose**: 
+  - Saves matplotlib figures (e.g., risk score plots) to image files.
+
+---
+
+### **11. Putting It All Together**
+```python
+data = pd.read_csv('network_traffic_data.csv')
+data = preprocess_data(data)
+
+iso_pred = isolation_forest_detection(data)
+svm_pred = one_class_svm_detection(data)
+autoencoder = build_autoencoder(data.shape[1])
+reconstruction_error = autoencoder_detection(data, autoencoder)
+
+dbscan_labels = unsupervised_detection(data)
+spoofing_flags = ip_spoofing_detection(data['ClientIP'].values)
+port_scanning_flags = port_scanning_detection(data)
+mitm_flags = mitm_detection(data)
+
+risk_scores = np.mean([iso_pred, svm_pred, reconstruction_error > np.percentile(reconstruction_error, 95)], axis=0)
+risky_ips, blocked_ips = enforce_security_policy(risk_scores)
+
+print(f"Detected risky IPs: {risky_ips}")
+
+fig, ax = plt.subplots()
+ax.plot(risk_scores)
+ax.set_title("Risk Scores Plot")
+save_image(fig, 'risk_scores_plot.png')
+
+save_to_file(risky_ips, 'risky_ips.txt')
+save_to_file(pd.DataFrame({'IP': risky_ips, 'Score': risk_scores}), 'risky_ips.csv')
+```
+- **Purpose**: 
+  - This is the main workflow of the script. It loads and preprocesses data, applies anomaly detection models, detects spoofing and port scanning, computes risk scores, enforces security policies, and saves the results.
+
+---
+
+This concludes the technical breakdown of the script. Each section performs a specific task aimed at detecting security threats, providing alerts, and saving analysis results for future review.
