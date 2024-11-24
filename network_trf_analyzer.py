@@ -12,6 +12,13 @@ from sklearn.metrics import silhouette_score
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import matplotlib.pyplot as plt
+import os
+
+# Directory for saving files
+output_dir = './output_files'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 # Step 1: Data Preprocessing
 def preprocess_data(data):
@@ -114,10 +121,23 @@ def enforce_security_policy(risk_scores, threshold=0.8):
         if score > threshold:
             risky_ips.append(i)  # Collect risky IP indices
     
+    # Simulate blocking risky IPs
+    blocked_ips = block_risky_ips(risky_ips)
+    
     # Simulate sending alert via email (this can be replaced with your alerting mechanism)
     send_alert_email(risky_ips)
 
-    return risky_ips
+    return risky_ips, blocked_ips
+
+def block_risky_ips(risky_ips):
+    """
+    Simulate blocking risky IPs by logging them into a blocked list.
+    In real-world scenarios, you would integrate with your firewall or network security tool.
+    """
+    blocked_ips = risky_ips  # Just simulate by returning the same IPs for now
+    save_to_file(blocked_ips, 'blocked_ips.txt')  # Save the blocked IPs to a text file
+    print(f"Blocked IPs: {blocked_ips}")
+    return blocked_ips
 
 def send_alert_email(risky_ips):
     """
@@ -143,6 +163,23 @@ def send_alert_email(risky_ips):
             print("Alert sent successfully.")
     except Exception as e:
         print(f"Error sending alert: {e}")
+
+def save_to_file(data, filename):
+    """
+    Save analysis results to file (CSV for lists, TXT for simple data).
+    """
+    if isinstance(data, list):  # Save as text file if it's a list of IPs or simple data
+        with open(os.path.join(output_dir, filename), 'w') as f:
+            f.write("\n".join(map(str, data)))
+    elif isinstance(data, pd.DataFrame):  # Save as CSV if it's a DataFrame
+        data.to_csv(os.path.join(output_dir, filename), index=False)
+
+def save_image(fig, filename):
+    """
+    Save a matplotlib figure to an image file.
+    """
+    fig.savefig(os.path.join(output_dir, filename))
+    print(f"Image saved to {filename}")
 
 # Step 8: Putting It All Together
 
@@ -174,8 +211,18 @@ mitm_flags = mitm_detection(data)
 risk_scores = np.mean([iso_pred, svm_pred, reconstruction_error > np.percentile(reconstruction_error, 95)], axis=0)
 
 # Apply policy enforcement: Block or alert on high-risk IPs
-risky_ips = enforce_security_policy(risk_scores)
+risky_ips, blocked_ips = enforce_security_policy(risk_scores)
 
 # Show the final detection results
 print(f"Detected risky IPs: {risky_ips}")
 
+# Save images generated during execution
+# Example: Let's say you generate a plot of the anomaly detection results
+fig, ax = plt.subplots()
+ax.plot(risk_scores)
+ax.set_title("Risk Scores Plot")
+save_image(fig, 'risk_scores_plot.png')
+
+# Save the results into files
+save_to_file(risky_ips, 'risky_ips.txt')
+save_to_file(pd.DataFrame({'IP': risky_ips, 'Score': risk_scores}), 'risky_ips.csv')
