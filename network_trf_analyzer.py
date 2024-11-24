@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
+from keras.models import Model
+from keras.layers import Input, Dense
 from sklearn.preprocessing import StandardScaler
 import geopy.distance
 import geoip2.database
@@ -12,6 +14,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import matplotlib.pyplot as plt
 import os
+import shutil
 from flask import Flask, send_from_directory
 
 # Directory for saving files and visualizations
@@ -40,6 +43,27 @@ def one_class_svm_detection(data):
     svm = OneClassSVM(kernel="rbf", gamma='scale', nu=0.05)
     svm_pred = svm.fit_predict(data)
     return svm_pred
+
+# Autoencoder for Anomaly Detection
+def build_autoencoder(input_dim):
+    input_layer = Input(shape=(input_dim,))
+    encoded = Dense(64, activation='relu')(input_layer)
+    encoded = Dense(32, activation='relu')(encoded)
+    encoded = Dense(16, activation='relu')(encoded)
+    
+    decoded = Dense(32, activation='relu')(encoded)
+    decoded = Dense(64, activation='relu')(decoded)
+    decoded = Dense(input_dim, activation='sigmoid')(decoded)
+    
+    autoencoder = Model(input_layer, decoded)
+    autoencoder.compile(optimizer='adam', loss='mean_squared_error')
+    return autoencoder
+
+def autoencoder_detection(data, autoencoder, epochs=50, batch_size=32):
+    autoencoder.fit(data, data, epochs=epochs, batch_size=batch_size)
+    reconstructed = autoencoder.predict(data)
+    reconstruction_error = np.mean(np.abs(data - reconstructed), axis=1)
+    return reconstruction_error
 
 # Step 3: Implement Unsupervised Learning for Novel Attack Detection
 
@@ -85,6 +109,7 @@ def port_scanning_detection(data):
 # Step 6: Man-in-the-Middle (MITM) Attack Detection (Placeholder)
 def mitm_detection(data):
     # Placeholder for MITM detection
+    # Check for anomalies in SSL/TLS handshakes, or abnormal HTTP headers
     return [False] * len(data)  # Return dummy values (no detection for now)
 
 # Step 7: Policy Enforcement (Alerts and Blocking)
@@ -169,6 +194,8 @@ data = preprocess_data(data)
 # Apply multiple anomaly detection models
 iso_pred = isolation_forest_detection(data)
 svm_pred = one_class_svm_detection(data)
+autoencoder = build_autoencoder(data.shape[1])
+reconstruction_error = autoencoder_detection(data, autoencoder)
 
 # Unsupervised learning for novel attacks (using DBSCAN)
 dbscan_labels = unsupervised_detection(data)
@@ -183,7 +210,7 @@ port_scanning_flags = port_scanning_detection(data)
 mitm_flags = mitm_detection(data)
 
 # Aggregate results and create risk scores
-risk_scores = np.mean([iso_pred, svm_pred], axis=0)  # No autoencoder
+risk_scores = np.mean([iso_pred, svm_pred, reconstruction_error > np.percentile(reconstruction_error, 95)], axis=0)
 
 # Apply policy enforcement: Block or alert on high-risk IPs
 risky_ips, blocked_ips = enforce_security_policy(risk_scores)
@@ -208,3 +235,4 @@ def view_file(filename):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=443, ssl_context=('cert.pem', 'key.pem'))  # Run with SSL (Apache port 443)
+
