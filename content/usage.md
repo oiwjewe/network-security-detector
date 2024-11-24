@@ -3,10 +3,7 @@
 **READ 'ACKNOWLEDGEMENTS' SESSION FROM README.MD BEFORE RUN THIS TOOL**!<br><br>
 The required columns to run this tool is:<br>
 *ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeStartTimestamp,ZoneName,ClientASN,ClientCountry*,<br>
-*ClientDeviceType,ClientSrcPort,ClientRequestBytes,ClientRequestPath,ClientRequestReferer,ClientRequestScheme,ClientRequestUserAgent*<br>
-
-
-However the code has a some flexibility to handle little variations of it. Just don't go too wild.<br><br>
+*ClientDeviceType,ClientSrcPort,ClientRequestBytes,ClientRequestPath,ClientRequestReferer,ClientRequestScheme,ClientRequestUserAgent*<br><br>
 
 To run **network-security-detector tool**, you’ll need to use the Docker basic comands as suggested in the examples bellow:<br>
 
