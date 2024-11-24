@@ -7,8 +7,9 @@ The required columns to run this tool is:<br>
 
 To run **network-security-detector tool**, you’ll need to use the Docker basic comands as suggested in the examples bellow:<br>
 
-A initial sample could be done with this sample:<br>
-https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d269b8/raw/e0006a126b85782d95a655977deeabbb2b41d0c7/test-dataset.csv<br>
+A initial tests could be done with this sample:<br>
+- [Data sample](sample.csv)<br><br>
+
 
 **1)Add data manually**: Fisrt add a sample of data in .CSV format for machine learning training.<br>
 
