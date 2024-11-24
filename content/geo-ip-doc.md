@@ -1,7 +1,3 @@
-Certainly! Here's the updated technical documentation without the summary at the end:
-
----
-
 # Technical Documentation for `geoip.sh` Script
 
 This `geoip.sh` script automates the process of downloading the GeoLite2 City database, installing necessary Python dependencies, and training an anomaly detection model using the Isolation Forest algorithm. Below is a breakdown of each section of the script:
