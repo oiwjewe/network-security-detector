@@ -5,7 +5,7 @@ The required columns to run this tool is:<br>
 *ClientDeviceType,ClientSrcPort,ClientRequestBytes,ClientRequestPath,ClientRequestReferer,ClientRequestScheme,ClientRequestUserAgent*<br>
 
 
-However the code has a little flexibility to handle some variations on it. Just don't be to much wild.<br><br>
+However the code has a some flexibility to handle little variations of it. Just don't go too wild.<br><br>
 
 To run this script, you’ll need to use the Docker basic comands as suggested in the examples bellow:<br>
 
