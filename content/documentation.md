@@ -292,9 +292,9 @@ save_to_file(pd.DataFrame({'IP': risky_ips, 'Score': risk_scores}), 'risky_ips.c
 
 ---
 
-Further scripts documentation can be read at:<br><br>
 
-# Example of scripts to upload and remove data from the container 
+
+# Further scripts documentation can be read at:
 
 - [Dockerfile](dockerfile-doc.md)<br>
 - [Geo-ip](geo-ip-doc.md)<br>
