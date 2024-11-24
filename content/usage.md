@@ -32,9 +32,11 @@ To remove specific files:<br>
 `docker exec $CONTAINER rm /caminho/no/container/arquivo.csv`<br>
 
 To remove all .CSV files in a directory inside the container:<br>
+
 `docker exec $CONTAINER rm /caminho/no/container/*.csv`
 
 To verify if the files were removed sucessfuly:<br>
+
 `docker exec $CONTAINER ls /caminho/no/container/*.csv`
 
 2)Finally, to run the script, simply execute the following command:<br>
