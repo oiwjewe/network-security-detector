@@ -13,7 +13,7 @@ Initial tests can be done with this sample:<br>
 
 **1)Add data manually**: Fisrt add a sample of data in .CSV format for machine learning training.<br>
 
-Firs run the container:<br>
+First run the container:<br>
 
 `docker run -d --name network-traffic-analyzer:first w1ndx/network-traffic-analyzer:first`<br>
 
