@@ -95,7 +95,7 @@ RUN chmod +x geoip.sh
 RUN chmod -R 750 /usr/src/network_trf_analyzer
 
 # Default command to run Apache in the background and then the Python script after Apache is up
-ENTRYPOINT ["bash", "-c", "/usr/src/network_trf_analyzer/geoip.sh && service apache2 start && python3 /usr/src/network_trf_analyzer/meu_script.py"]
+ENTRYPOINT ["bash", "-c", "/usr/src/network_trf_analyzer/geoip.sh && service apache2 start && python3 /usr/src/network_trf_analyzer/network_trf_analyzer.py"]
 
 # Start Apache in the foreground to keep the container running
 CMD ["apache2ctl", "-D", "FOREGROUND"]
