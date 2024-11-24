@@ -1,6 +1,6 @@
 <h3>Usage:</h3><br>
 
-**READ ACKNOWLEDGEMENTS SESSION BEFORE YOU RUN THIS TOOL**!<br><br>
+**READ ACKNOWLEDGEMENTS SESSION FROM README.MD BEFORE RUN THIS TOOL**!<br><br>
 The required columns to run this tool is:<br>
 *ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeStartTimestamp,ZoneName,ClientASN,ClientCountry*,<br>
 *ClientDeviceType,ClientSrcPort,ClientRequestBytes,ClientRequestPath,ClientRequestReferer,ClientRequestScheme,ClientRequestUserAgent*<br>
