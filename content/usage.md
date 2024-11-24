@@ -1,5 +1,6 @@
 <h3>Usage:</h3><br>
 
+**READ ACKNOWLEDGEMENTS SESSION BEFORE YOU RUN THIS TOOL**!<br><br>
 The required columns to run this tool is:<br>
 *ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeStartTimestamp,ZoneName,ClientASN,ClientCountry*,<br>
 *ClientDeviceType,ClientSrcPort,ClientRequestBytes,ClientRequestPath,ClientRequestReferer,ClientRequestScheme,ClientRequestUserAgent*<br>
@@ -8,7 +9,6 @@ The required columns to run this tool is:<br>
 However the code has a some flexibility to handle little variations of it. Just don't go too wild.<br><br>
 
 To run **network-security-detector tool**, you’ll need to use the Docker basic comands as suggested in the examples bellow:<br>
-**READ ACKNOWLEDGEMENTS SESSION BEFORE YOU RUN THIS TOOL**!<br>
 
 A initial sample could be done with this sample:<br>
 https://gist.githubusercontent.com/cloudwalk-tests/3c82d813645f547618b3ea81b6d269b8/raw/e0006a126b85782d95a655977deeabbb2b41d0c7/test-dataset.csv<br>
