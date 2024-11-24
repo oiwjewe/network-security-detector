@@ -288,8 +288,14 @@ save_to_file(risky_ips, 'risky_ips.txt')
 save_to_file(pd.DataFrame({'IP': risky_ips, 'Score': risk_scores}), 'risky_ips.csv')
 ```
 - **Purpose**: 
-  - This is the main workflow of the script. It loads and preprocesses data, applies anomaly detection models, detects spoofing and port scanning, computes risk scores, enforces security policies, and saves the results.
+  - This is the main workflow of the script. It loads and preprocesses data, applies anomaly detection models, detects spoofing and port scanning, computes risk scores, enforces security policies, and saves the results.<br>
 
 ---
 
-This concludes the technical breakdown of the script. Each section performs a specific task aimed at detecting security threats, providing alerts, and saving analysis results for future review.
+Further scripts documentation can be read at:<br><br>
+
+# Example of scripts to upload and remove data from the container 
+
+- [Dockerfile](dockerfile-doc.md)<br>
+- [Geo-ip](geo-ip-doc.md)<br>
+
