@@ -18,8 +18,8 @@ A initial sample could be done with this sample: https://gist.githubusercontent.
 This can be done manually or you can automate this process as suggested bellow, in this case provide your customized changes:<br>
 
 # Example of scripts to upload and remove data from the container 
-- [Description](content/add-data.sh)<br>
-- [Deliverables](content/remove-data.sh)<br>
+- [Add-data](content/add-data.md)<br>
+- [Remove-data](content/remove-data.md)<br>
 
 
 To remove the data manualy, run:
