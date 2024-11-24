@@ -5,7 +5,7 @@ The Network Traffic Analyzer tool is designed to analyze and monitor network tra
 The solution integrates additional features like geolocation filtering to block or flag traffic from high-risk countries, as well as anonymizing sensitive data for enhanced privacy compliance. With the ability to scale and adapt to different traffic patterns, this tool provides an effective layer of protection for networks.<br><br>
 
 
-Technologies Used:<br>
+**Technologies Used**:<br>
 Machine Learning (Isolation Forest, One-Class SVM, Autoencoders)<br>
 Geolocation-based (Risk Detection)<br>
 Privacy Enhancements (IP Hashing & Encryption)<br>
@@ -13,7 +13,7 @@ Containers (Scalability)<br>
 This tool can be easily extended to include more advanced techniques like deep learning or reinforcement learning to improve security over time.<br><br>
 
 
-Key Features:<br>
+**Key Features**:<br>
 Anomaly Detection using advanced machine learning models Geolocation Filtering to block traffic from high-risk countries Privacy Protection through IP hashing and encryption Scalable and Adaptable to various traffic patterns and security needs.<br><br>
 
 # Getting Started:
