@@ -10,8 +10,6 @@ Machine Learning (Isolation Forest, One-Class SVM, Autoencoders)<br>
 Geolocation-based (Risk Detection)<br>
 Privacy Enhancements (IP Hashing & Encryption)<br>
 Containers (Scalability)<br>
-This tool can be easily extended to include more advanced techniques like deep learning or reinforcement learning to improve security over time.<br><br>
-
 
 **Key Features**:<br>
 Anomaly Detection using advanced machine learning models Geolocation Filtering to block traffic from high-risk countries Privacy Protection through IP hashing and encryption Scalable and Adaptable to various traffic patterns and security needs.<br><br>
@@ -25,3 +23,5 @@ Simply click on the topic you're interested in to navigate through the sections 
 - [Installation](content/installation.md) - The "Installation" section provides a step-by-step guide on how to install the application.
 - [Usage](content/usage.md) - The "Usage" section provides a step-by-step guide on how to run the application.
 - [Acknowledgments and Considerations](content/acknowledgments.md) - The "Acknowledgments and Final Remarks" section offers gratitude to those who contributed to the project and provides any concluding thoughts or important information.
+
+This tool can be extended to include more advanced techniques like deep learning or reinforcement learning to improve security over time.<br><br>
